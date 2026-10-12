@@ -2855,6 +2855,24 @@ function shemagh(x, hy, r, withAgal) {
   return cloth + ring;
 }
 
+/* arms dressed to match the outfit: long sleeves in the dress or thobe colour, bare arms below a T-shirt's
+   short sleeves; each ends in a small skin-toned hand. Outlined in the figure's line colour like the head. */
+function limbs(look, x, neck, hands, line) {
+  const sleeve = look.outfit === "dress" ? look.outfitColor : look.outfit === "thobe" ? "#f7f7f2" : SKIN;
+  const tee = look.outfit === "tee";
+  const sy = neck + (tee ? 7 : 5);
+  return hands.map(([hx, hy], k) => {
+    const sx = x + (k ? 1 : -1) * (tee ? 8 : 4);
+    /* stop the sleeve just short of the hand so the hand sits at the cuff */
+    const len = Math.hypot(hx - sx, hy - sy) || 1;
+    const cx = hx - (hx - sx) / len * 2.2, cy = hy - (hy - sy) / len * 2.2;
+    const d = `M${sx} ${sy} L${cx.toFixed(1)} ${cy.toFixed(1)}`;
+    return `<path d="${d}" fill="none" style="stroke: ${line}" stroke-width="5.6" stroke-linecap="round"/>
+      <path d="${d}" fill="none" stroke="${sleeve}" stroke-width="3.4" stroke-linecap="round"/>
+      <circle cx="${hx}" cy="${hy}" r="2.4" fill="${SKIN}" style="stroke: ${line}" stroke-width="1.1"/>`;
+  }).join("");
+}
+
 /* look: player config; pose: "stand" (feet at y) or "sit" (garden bench); o: line colour, arms, face, label */
 function figure(look, x, y, pose, o) {
   const sit = pose === "sit";
@@ -2866,11 +2884,11 @@ function figure(look, x, y, pose, o) {
   const legs = sit
     ? `M${x} ${hip} L${x + 18} ${hip + 2} V${feet} L${x + 24} ${feet}`
     : `M${x} ${hip} L${x - 8} ${feet} M${x} ${hip} L${x + 8} ${feet}`;
-  const arms = sit
-    ? `M${x} ${sh} L${x + 14} 182 M${x} ${sh} L${x - 8} 184`
-    : o.arms === "up"   ? `M${x} ${sh} L${x - 15} ${y - 53} M${x} ${sh} L${x + 15} ${y - 53}`
-    : o.arms === "down" ? `M${x} ${sh} L${x - 9} ${y - 19} M${x} ${sh} L${x + 9} ${y - 19}`
-    :                     `M${x} ${sh} L${x - 10} ${y - 20} M${x} ${sh} L${x + 22} ${y - 32}`;
+  /* hands: [left, right] end points for each pose */
+  const hands = sit ? [[x - 7, 186], [x + 15, 183]]
+    : o.arms === "up"   ? [[x - 20, y - 52], [x + 20, y - 52]]
+    : o.arms === "down" ? [[x - 13, y - 19], [x + 13, y - 19]]
+    :                     [[x - 13, y - 20], [x + 22, y - 33]];
   const cloth = `stroke="rgba(0,0,0,.35)" stroke-width="1.2" stroke-linejoin="round"`;
 
   let under = "", clothes = "";
@@ -2904,7 +2922,7 @@ function figure(look, x, y, pose, o) {
     <path class="f-mouth" d="${mouth}" fill="none" stroke="${FACE}" stroke-width="1.7" stroke-linecap="round"/>
     ${hr.front}
     ${saudi ? shemagh(x, hy, r, !sit) : ""}
-    <path d="${arms}" fill="none" style="stroke: ${line}" stroke-width="3.2" stroke-linecap="round"/>
+    ${limbs(look, x, neck, hands, line)}
     ${o.tear ? `<path d="M${x + 6} ${hy + 1} q2 3.5 0 5 q-2 -1.5 0 -5z" fill="#6fb2ea"/>` : ""}
     ${o.label ? `<text x="${x}" y="${hy - 20}" class="sac-label" style="fill: ${line}">${o.label}</text>` : ""}`;
 }
