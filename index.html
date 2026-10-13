@@ -2710,25 +2710,26 @@ function refreshSubjectTags() {
 }
 
 /* ===== Bridge of Balance ===== */
-const BR = { W: 320, H: 112, DECK: 70, FEET: 66, CLIFF_L: 22, CLIFF_R: 298, X0: 46, X1: 274 };
-BR.PLANK = (BR.X1 - BR.X0) / 5;
-const brX = (k) => k <= 0 ? BR.CLIFF_L : k >= 6 ? BR.CLIFF_R : BR.X0 + BR.PLANK * (k - 0.5);
+const BR = { W: 320, H: 112, DECK: 70, FEET: 66, CLIFF_L: 22, CLIFF_R: 298, X0: 46, X1: 274, PLANKS: 8 };
+BR.PLANK = (BR.X1 - BR.X0) / BR.PLANKS;
+/* the player needs PASS_MARK correct answers to pass, so the bridge is crossed in exactly PASS_MARK steps:
+   step k stands at k/PASS_MARK of the way across, and the last step lands on the far cliff */
+const brX = (k) => BR.CLIFF_L + (BR.CLIFF_R - BR.CLIFF_L) * Math.min(Math.max(k, 0), PASS_MARK) / PASS_MARK;
 let brPos = 0, brBusy = null;
 function renderBridge() {
   const i = quiz.i, l = LOCKS[i];
   const pid = "shemaghBridge";
   const fig = figure(l, 0, 0, "stand", { line: "#ece5d7", hairEdge: "rgba(255,255,255,.35)", arms: "down" })
     .split("url(#shemagh)").join(`url(#${pid})`);
-  const planks = [1, 2, 3, 4, 5].map(k => {
-    const x = BR.X0 + BR.PLANK * (k - 1);
-    return `<g>
-      <rect class="br-plank" id="brPlank${k}" x="${(x + 1.5).toFixed(1)}" y="${BR.DECK}" width="${(BR.PLANK - 3).toFixed(1)}" height="7" rx="1.5" fill="#7a4b2b" stroke="#3b2210" stroke-width="1"/>
-      <path class="br-crack" id="brCrack${k}" d="M${(x + BR.PLANK * .5).toFixed(1)} ${BR.DECK} l-4 4 l4 3 l-3 4" fill="none" stroke="#ff8a7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-    </g>`;
+  const planks = Array.from({ length: BR.PLANKS }, (_, k) => {
+    const x = BR.X0 + BR.PLANK * k;
+    return `<rect class="br-plank" data-c="${(x + BR.PLANK / 2).toFixed(1)}" x="${(x + 1.2).toFixed(1)}" y="${BR.DECK}" width="${(BR.PLANK - 2.4).toFixed(1)}" height="7" rx="1.5" fill="#7a4b2b" stroke="#3b2210" stroke-width="1"/>`;
   }).join("");
   const posts = [BR.X0 - 2, BR.X1 + 2].map(x => `<rect x="${x - 1.5}" y="${BR.DECK - 22}" width="3" height="24" fill="#5a3a1f"/>`).join("");
   const ropeL = `M${BR.X0 - 2} ${BR.DECK - 20} Q${(BR.X0 + BR.X1) / 2} ${BR.DECK - 8} ${BR.X1 + 2} ${BR.DECK - 20}`;
   const stars = [[40, 12], [90, 24], [150, 10], [210, 20], [262, 9], [300, 26]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1" fill="#f3ead0" opacity=".7"/>`).join("");
+  /* little footprints marking each step */
+  const marks = Array.from({ length: PASS_MARK - 1 }, (_, k) => `<circle cx="${brX(k + 1).toFixed(1)}" cy="${BR.DECK + 3.5}" r="1.6" fill="#ecd08c" opacity=".55"/>`).join("");
   $("bridge").innerHTML = `
   <svg viewBox="0 0 ${BR.W} ${BR.H}" role="img" aria-label="Bridge of Balance">
     <defs>
@@ -2746,40 +2747,42 @@ function renderBridge() {
       <path d="M${BR.X0 - 2} ${BR.DECK + 2} Q${(BR.X0 + BR.X1) / 2} ${BR.DECK + 12} ${BR.X1 + 2} ${BR.DECK + 2}" stroke-width="1"/>
     </g>
     ${posts}
-    ${planks}
-    <rect x="${BR.X1 + 14}" y="${BR.DECK - 24}" width="2" height="26" fill="#6b717b"/>
-    <path d="M${BR.X1 + 16} ${BR.DECK - 24} l16 5 l-16 5 z" fill="#ecd08c"/>
+    <g id="brPlanks">${planks}</g>
+    ${marks}
+    <path class="br-crack" id="brCrack" d="M0 ${BR.DECK - 1} l-4 4 l4 3 l-3 4" fill="none" stroke="#ff8a7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="${BR.CLIFF_R - 8}" y="${BR.DECK - 24}" width="2" height="26" fill="#6b717b"/>
+    <path d="M${BR.CLIFF_R - 6} ${BR.DECK - 24} l-14 5 l14 5 z" fill="#ecd08c"/>
     <g class="br-walker" id="brWalker" style="transform: translate(${brX(0)}px, ${BR.FEET}px)">
       <g class="br-act" id="brAct"><g transform="scale(.85)">${fig}</g></g>
     </g>
   </svg>`;
   brPos = 0;
 }
-/* move the player to plank k (0 = start cliff, 6 = far cliff) */
+/* move the player to step k (0 = start cliff, PASS_MARK = far cliff) */
 function bridgeTo(k, cheer) {
   const w = $("brWalker"), a = $("brAct");
   if (!w) return;
+  k = Math.min(k, PASS_MARK);
+  const arrived = k === PASS_MARK && brPos !== PASS_MARK;
   brPos = k;
   w.style.transform = `translate(${brX(k)}px, ${BR.FEET}px)`;
   w.classList.add("moving");
-  for (let j = 1; j <= 5; j++) $("brPlank" + j).classList.toggle("done", j <= k);
+  document.querySelectorAll("#brPlanks .br-plank").forEach(pl => pl.classList.toggle("done", +pl.dataset.c <= brX(k)));
   clearTimeout(brBusy);
   brBusy = setTimeout(() => {
     w.classList.remove("moving");
-    if (cheer) { a.classList.remove("cheer"); void a.getBoundingClientRect(); a.classList.add("cheer"); }
+    if (cheer || arrived) { a.classList.remove("cheer"); void a.getBoundingClientRect(); a.classList.add("cheer"); }
   }, 780);
 }
-/* wrong answer: the player wobbles and the next plank cracks, but they stay where they are */
+/* wrong answer: the player wobbles and the path just ahead cracks, but they stay where they are */
 function bridgeShake() {
   const a = $("brAct");
   if (!a) return;
   a.classList.remove("shake"); void a.getBoundingClientRect(); a.classList.add("shake");
-  const nxt = brPos + 1;
-  if (nxt <= 5) {
-    const pl = $("brPlank" + nxt), cr = $("brCrack" + nxt);
-    pl.classList.remove("crack"); cr.classList.remove("show");
-    void pl.getBoundingClientRect();
-    pl.classList.add("crack"); cr.classList.add("show");
+  if (brPos < PASS_MARK) {
+    const cr = $("brCrack"), x = (brX(brPos) + brX(brPos + 1)) / 2 + 4;
+    cr.setAttribute("transform", `translate(${x.toFixed(1)} 0)`);
+    cr.classList.remove("show"); void cr.getBoundingClientRect(); cr.classList.add("show");
   }
   setTimeout(() => a.classList.remove("shake"), 650);
 }
@@ -3151,7 +3154,7 @@ function renderResult() {
   if (passed) {
     document.querySelector(`.trial-btn[data-i="${i}"]`).classList.add("done");
     Music.triumph();
-    setTimeout(() => bridgeTo(6, true), 300);
+    setTimeout(() => bridgeTo(PASS_MARK, true), 300);
     quizBody.innerHTML = `
       <div class="q-result">
         <h2>${T.passed}</h2>
