@@ -3506,7 +3506,7 @@ function goCredits() {
   const ROLL = 22600;                     /* the roll finishes, then The End fades in */
   setTimeout(() => Music.fadeCredits(5), ROLL - 4400);
   setTimeout(() => $("theEnd").classList.add("show"), ROLL + 600);
-  if (battleFighters().length) setTimeout(zombieRises, ROLL + 600 + 5500);
+  if (battleFighters().length) setTimeout(zombieRises, ROLL + 600 + 1800);
 }
 
 const CERT_TEXT = {
@@ -3621,7 +3621,7 @@ function zombieRises() {
     c.classList.remove("quake");
     goPage(c, $("battle"));
     startBattle();
-  }, reduced ? 3300 : 3900);
+  }, reduced ? 2400 : 2800);
 }
 
 
