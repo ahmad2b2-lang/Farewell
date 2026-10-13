@@ -510,6 +510,32 @@ h1 {
   border-radius: 14px;
 }
 .quiz-card p { margin: 0; max-width: 60ch; }
+
+/* ---------- Bridge of Balance: the player crosses one plank per correct answer ---------- */
+.bridge { margin-top: 14px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #0d1016; }
+.bridge svg { display: block; width: 100%; height: auto; }
+.br-walker { transition: transform .75s cubic-bezier(.4, 0, .2, 1); }
+.br-act { transform-box: fill-box; transform-origin: 50% 100%; }
+.br-walker.moving .br-act { animation: brStep .25s ease-in-out 3; }
+@keyframes brStep { 50% { transform: translateY(-4px); } }
+.br-act.shake { animation: brShake .6s linear; }
+@keyframes brShake {
+  0%, 100% { transform: none; }
+  12% { transform: translateX(-4px) rotate(-7deg); }
+  28% { transform: translateX(4px) rotate(7deg); }
+  44% { transform: translateX(-3px) rotate(-5deg); }
+  60% { transform: translateX(3px) rotate(5deg); }
+  78% { transform: translateX(-1.5px) rotate(-2deg); }
+}
+.br-act.cheer { animation: brCheer .45s ease-out 3; }
+@keyframes brCheer { 50% { transform: translateY(-7px); } }
+.br-plank { transition: fill .3s ease; }
+.br-plank.crack { animation: brPlank .6s linear; }
+@keyframes brPlank { 0%, 100% { transform: none; } 20% { transform: translateY(2px); } 40% { transform: translateY(-1px); } 60% { transform: translateY(2px); } }
+.br-crack { opacity: 0; }
+.br-crack.show { animation: brCrack 1.4s ease-out; }
+@keyframes brCrack { 0% { opacity: 0; } 15%, 60% { opacity: 1; } 100% { opacity: 0; } }
+.br-plank.done { fill: #a9733f; }
 .quiz-card .q-text { margin: 16px 0; }
 .quiz-card[dir="rtl"] .q-bar i { transform-origin: right; }
 .q-intro { display: grid; gap: 14px; }
@@ -1410,6 +1436,7 @@ html { font-size: calc(16px * var(--s)); }
     </button>
     <h1 id="quizTitle">Trial</h1>
   </div>
+  <div class="bridge" id="bridge" dir="ltr" aria-hidden="true" hidden></div>
   <div class="quiz-card" id="quizBody" aria-live="polite"></div>
 </section>
 
@@ -2639,6 +2666,7 @@ function openTrial(i) {
 }
 
 function renderIntro() {
+  $("bridge").hidden = true;
   const i = quiz.i, me = LOCKS[i], t = QUIZ[i], T = tx(i), lang = me.lang === "ar" ? "ar" : "en";
   let pick = me.subject;
   const owner = (id) => LOCKS.findIndex((l, k) => k !== i && l.subject === id);
@@ -2681,7 +2709,84 @@ function refreshSubjectTags() {
   });
 }
 
+/* ===== Bridge of Balance ===== */
+const BR = { W: 320, H: 112, DECK: 70, FEET: 66, CLIFF_L: 22, CLIFF_R: 298, X0: 46, X1: 274 };
+BR.PLANK = (BR.X1 - BR.X0) / 5;
+const brX = (k) => k <= 0 ? BR.CLIFF_L : k >= 6 ? BR.CLIFF_R : BR.X0 + BR.PLANK * (k - 0.5);
+let brPos = 0, brBusy = null;
+function renderBridge() {
+  const i = quiz.i, l = LOCKS[i];
+  const pid = "shemaghBridge";
+  const fig = figure(l, 0, 0, "stand", { line: "#ece5d7", hairEdge: "rgba(255,255,255,.35)", arms: "down" })
+    .split("url(#shemagh)").join(`url(#${pid})`);
+  const planks = [1, 2, 3, 4, 5].map(k => {
+    const x = BR.X0 + BR.PLANK * (k - 1);
+    return `<g>
+      <rect class="br-plank" id="brPlank${k}" x="${(x + 1.5).toFixed(1)}" y="${BR.DECK}" width="${(BR.PLANK - 3).toFixed(1)}" height="7" rx="1.5" fill="#7a4b2b" stroke="#3b2210" stroke-width="1"/>
+      <path class="br-crack" id="brCrack${k}" d="M${(x + BR.PLANK * .5).toFixed(1)} ${BR.DECK} l-4 4 l4 3 l-3 4" fill="none" stroke="#ff8a7a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>`;
+  }).join("");
+  const posts = [BR.X0 - 2, BR.X1 + 2].map(x => `<rect x="${x - 1.5}" y="${BR.DECK - 22}" width="3" height="24" fill="#5a3a1f"/>`).join("");
+  const ropeL = `M${BR.X0 - 2} ${BR.DECK - 20} Q${(BR.X0 + BR.X1) / 2} ${BR.DECK - 8} ${BR.X1 + 2} ${BR.DECK - 20}`;
+  const stars = [[40, 12], [90, 24], [150, 10], [210, 20], [262, 9], [300, 26]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1" fill="#f3ead0" opacity=".7"/>`).join("");
+  $("bridge").innerHTML = `
+  <svg viewBox="0 0 ${BR.W} ${BR.H}" role="img" aria-label="Bridge of Balance">
+    <defs>
+      <linearGradient id="brSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1020"/><stop offset="1" stop-color="#2b1d3c"/></linearGradient>
+      <linearGradient id="brPit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140f18"/><stop offset=".75" stop-color="#2a0f0c"/><stop offset="1" stop-color="#ff5a1f" stop-opacity=".55"/></linearGradient>
+      <pattern id="${pid}" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="#ffffff"/><rect width="2" height="2" fill="#c8323c"/><rect x="2" y="2" width="2" height="2" fill="#c8323c"/></pattern>
+    </defs>
+    <rect width="${BR.W}" height="${BR.H}" fill="url(#brSky)"/>
+    ${stars}
+    <rect x="30" y="${BR.DECK + 8}" width="${BR.W - 60}" height="${BR.H - BR.DECK - 8}" fill="url(#brPit)"/>
+    <path d="M0 ${BR.DECK + 2} H44 V${BR.H} H0 Z M${BR.W - 44} ${BR.DECK + 2} H${BR.W} V${BR.H} H${BR.W - 44} Z" fill="#3a3f48" stroke="#22262c" stroke-width="1.5"/>
+    <path d="M0 ${BR.DECK + 2} H44 M${BR.W - 44} ${BR.DECK + 2} H${BR.W}" stroke="#6b717b" stroke-width="3"/>
+    <g fill="none" stroke="#8a6a3c" stroke-width="1.4">
+      <path d="${ropeL}"/>
+      <path d="M${BR.X0 - 2} ${BR.DECK + 2} Q${(BR.X0 + BR.X1) / 2} ${BR.DECK + 12} ${BR.X1 + 2} ${BR.DECK + 2}" stroke-width="1"/>
+    </g>
+    ${posts}
+    ${planks}
+    <rect x="${BR.X1 + 14}" y="${BR.DECK - 24}" width="2" height="26" fill="#6b717b"/>
+    <path d="M${BR.X1 + 16} ${BR.DECK - 24} l16 5 l-16 5 z" fill="#ecd08c"/>
+    <g class="br-walker" id="brWalker" style="transform: translate(${brX(0)}px, ${BR.FEET}px)">
+      <g class="br-act" id="brAct"><g transform="scale(.85)">${fig}</g></g>
+    </g>
+  </svg>`;
+  brPos = 0;
+}
+/* move the player to plank k (0 = start cliff, 6 = far cliff) */
+function bridgeTo(k, cheer) {
+  const w = $("brWalker"), a = $("brAct");
+  if (!w) return;
+  brPos = k;
+  w.style.transform = `translate(${brX(k)}px, ${BR.FEET}px)`;
+  w.classList.add("moving");
+  for (let j = 1; j <= 5; j++) $("brPlank" + j).classList.toggle("done", j <= k);
+  clearTimeout(brBusy);
+  brBusy = setTimeout(() => {
+    w.classList.remove("moving");
+    if (cheer) { a.classList.remove("cheer"); void a.getBoundingClientRect(); a.classList.add("cheer"); }
+  }, 780);
+}
+/* wrong answer: the player wobbles and the next plank cracks, but they stay where they are */
+function bridgeShake() {
+  const a = $("brAct");
+  if (!a) return;
+  a.classList.remove("shake"); void a.getBoundingClientRect(); a.classList.add("shake");
+  const nxt = brPos + 1;
+  if (nxt <= 5) {
+    const pl = $("brPlank" + nxt), cr = $("brCrack" + nxt);
+    pl.classList.remove("crack"); cr.classList.remove("show");
+    void pl.getBoundingClientRect();
+    pl.classList.add("crack"); cr.classList.add("show");
+  }
+  setTimeout(() => a.classList.remove("shake"), 650);
+}
+
 function startTrialRun() {
+  renderBridge();
+  $("bridge").hidden = false;
   quiz.q = 0;
   quiz.results = [];
   quiz.list = questionsFor(quiz.i);
@@ -2795,6 +2900,7 @@ function renderQuestion() {
     if (item.sacrifice) {
       /* the Sacrifice Question is always correct; the pop-up tells the story */
       quiz.results[quiz.q] = true;
+      bridgeTo(brPos + 1);
       opts.forEach(o => {
         o.disabled = true;
         o.classList.remove("picked");
@@ -2819,6 +2925,7 @@ function renderQuestion() {
     note.textContent = ok ? T.correct : picked.size === 0 ? T.timeout : T.wrong;
     quiz.results[quiz.q] = ok;
     ok ? Music.correct() : Music.incorrect();
+    ok ? bridgeTo(brPos + 1) : bridgeShake();
     setTimeout(next, 1600);
   }
 }
@@ -3044,6 +3151,7 @@ function renderResult() {
   if (passed) {
     document.querySelector(`.trial-btn[data-i="${i}"]`).classList.add("done");
     Music.triumph();
+    setTimeout(() => bridgeTo(6, true), 300);
     quizBody.innerHTML = `
       <div class="q-result">
         <h2>${T.passed}</h2>
