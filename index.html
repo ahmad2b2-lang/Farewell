@@ -2909,12 +2909,18 @@ function bridgeShake() {
   setTimeout(() => a.classList.remove("shake"), 650);
 }
 
+/* the Sacrifice Question (when present) is the last item; everything before it is scored */
+const hasSac = (list) => !!(list.length && list[list.length - 1].sacrifice);
+const scoredCount = (list) => list.length - (hasSac(list) ? 1 : 0);
+
 function startTrialRun() {
   renderBridge();
   $("bridge").hidden = false;
   quiz.q = 0;
   quiz.results = [];
   quiz.list = questionsFor(quiz.i);
+  /* every player answers the Sacrifice Question once; a retry of the trial doesn't ask it again */
+  if (LOCKS[quiz.i].sacDone) quiz.list.pop();
   quiz.spares = sparesFor(quiz.i);
   quiz.backups = backupsFor(quiz.i).slice(0, BACKUP_MAX);
   quiz.changes = QUESTION_CHANGES;
@@ -2931,7 +2937,7 @@ function renderQuestion() {
   const multi = Array.isArray(item.answer);
   const answers = new Set(multi ? item.answer : [item.answer]);
   /* the Sacrifice Question is the last item and is outside the count: no dot, no number, no bridge step */
-  const counted = qs.length - 1;
+  const counted = scoredCount(qs);
   const dots = qs.slice(0, counted).map((_, k) =>
     `<span class="q-dot ${quiz.results[k] === true ? "right" : quiz.results[k] === false ? "wrong" : ""} ${k === quiz.q ? "now" : ""}"></span>`).join("");
   quizBody.innerHTML = `
@@ -3033,7 +3039,9 @@ function renderQuestion() {
         o.classList.remove("picked");
         o.classList.add(picked.has(+o.dataset.k) ? "right" : "dim");
       });
-      if (picked.has(0) && !picked.has(1)) ahmadLost = true;
+      LOCKS[quiz.i].sacDone = true;
+      /* any answer other than saving both means Ahmad is gone, for every player after this one too */
+      if (!(picked.has(0) && picked.has(1))) ahmadLost = true;
       setTimeout(() => { if (!quizEl.hidden) showSacrifice(picked, next, ahmadWasLost); }, 700);
       return;
     }
@@ -3056,7 +3064,7 @@ function renderQuestion() {
     else {
       bridgeShake();
       /* a slip is not the end: a backup question joins the trial, just before the Sacrifice Question */
-      if (quiz.backups.length) { quiz.list.splice(quiz.list.length - 1, 0, quiz.backups.shift()); }
+      if (quiz.backups.length) { quiz.list.splice(scoredCount(quiz.list), 0, quiz.backups.shift()); }
     }
     setTimeout(next, 1600);
   }
@@ -3264,6 +3272,9 @@ function showSacrifice(picked, done, alreadyLost) {
   if (mode === "sacrifice") {
     if (self && !battleFoeSelf) { battleFoe = quiz.i; battleFoeSelf = true; }
     else if (battleFoe === null) battleFoe = quiz.i;
+  } else if (mode === "alone" && self && !battleFoeSelf) {
+    /* Ahmad was already lost earlier; the first player to save only themselves afterwards faces the zombie */
+    battleFoe = quiz.i; battleFoeSelf = true;
   }
   $("sacArt").innerHTML = boatScene(mode, T, LOCKS[quiz.i]);
   $("sacTitle").textContent = title;
@@ -3277,7 +3288,7 @@ function showSacrifice(picked, done, alreadyLost) {
 }
 
 function renderResult() {
-  const i = quiz.i, n = quiz.list.length - 1, T = tx(i);
+  const i = quiz.i, n = scoredCount(quiz.list), T = tx(i);
   const score = quiz.results.slice(0, n).filter(Boolean).length; /* the Sacrifice Question is not scored */
   const passed = score >= PASS_MARK;
   if (passed) {
