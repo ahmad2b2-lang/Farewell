@@ -1534,7 +1534,7 @@ const LOCKS = [
 /* ===== Trials: one quiz per person, in the same order as LOCKS =====
    Each question has 4 choices; "answer" is the position of the right one (0 = first).
    "intro" is the explanation shown before the trial starts. */
-const PASS_MARK = 4; /* correct answers needed out of 5 to pass */
+const PASS_MARK = 5; /* correct answers needed to cross the bridge: 5 steps (the Sacrifice Question counts as a step) */
 /* The Sacrifice Question: the last question of every trial.
    The player may pick one, both or neither choice; any answer counts as correct.
    When time runs out a pop-up shows what happened on the boat. */
@@ -1731,7 +1731,92 @@ const SPARE = {
       { q: "أيّ سفينة شهيرة غرقت عام 1912 بعد اصطدامها بجبل جليدي؟", choices: ["ماي فلاور", "تايتانيك", "اللؤلؤة السوداء", "سانتا ماريا"], answer: 1 }
     ] }
 };
+/* backup questions: a wrong answer adds one of these to the end of the trial (3 per subject, both languages) */
+const BACKUP_MAX = 3;
+const BACKUP = {
+  health: {
+    en: [
+      { q: "Which of these helps build strong bones?", choices: ["Candy", "Milk", "Soda", "Chips"], answer: 1 },
+      { q: "What should you do when you cough or sneeze?", choices: ["Cover your mouth and nose", "Shout loudly", "Run away", "Nothing at all"], answer: 0 },
+      { q: "Which organ pumps blood around your body?", choices: ["Stomach", "Lungs", "Heart", "Ears"], answer: 2 }
+    ],
+    ar: [
+      { q: "أيّ هذه يساعد على بناء عظام قوية؟", choices: ["الحلوى", "الحليب", "المشروبات الغازية", "رقائق البطاطس"], answer: 1 },
+      { q: "ماذا يجب أن تفعل عندما تسعل أو تعطس؟", choices: ["تغطي فمك وأنفك", "تصرخ بصوت عالٍ", "تهرب", "لا شيء"], answer: 0 },
+      { q: "أيّ عضو يضخ الدم في جسمك؟", choices: ["المعدة", "الرئتان", "القلب", "الأذنان"], answer: 2 }
+    ] },
+  football: {
+    en: [
+      { q: "Where must the ball go to score a goal?", choices: ["Over the fence", "Into the net", "Into the stands", "Out of the pitch"], answer: 1 },
+      { q: "Which part of the body can field players NOT use to touch the ball?", choices: ["Head", "Feet", "Hands", "Chest"], answer: 2 },
+      { q: "What shape is a football pitch?", choices: ["Circle", "Triangle", "Rectangle", "Star"], answer: 2 }
+    ],
+    ar: [
+      { q: "إلى أين يجب أن تدخل الكرة لتُسجَّل هدفًا؟", choices: ["فوق السور", "داخل الشباك", "إلى المدرجات", "خارج الملعب"], answer: 1 },
+      { q: "أيّ جزء من الجسم لا يستطيع لاعبو الميدان لمس الكرة به؟", choices: ["الرأس", "القدمان", "اليدان", "الصدر"], answer: 2 },
+      { q: "ما شكل ملعب كرة القدم؟", choices: ["دائرة", "مثلث", "مستطيل", "نجمة"], answer: 2 }
+    ] },
+  mood: {
+    en: [
+      { q: "How do you usually feel when you get a nice surprise present?", choices: ["Happy", "Sad", "Scared", "Angry"], answer: 0 },
+      { q: "What can help when you feel sad?", choices: ["Hiding forever", "Talking to someone you trust", "Hitting something", "Never speaking"], answer: 1 },
+      { q: "What is a good way to calm down before a test?", choices: ["Panic", "Give up", "Take a few deep breaths", "Argue with friends"], answer: 2 }
+    ],
+    ar: [
+      { q: "بماذا تشعر عادةً عندما تتلقى هدية مفاجئة جميلة؟", choices: ["السعادة", "الحزن", "الخوف", "الغضب"], answer: 0 },
+      { q: "ما الذي قد يساعدك عندما تشعر بالحزن؟", choices: ["الاختباء إلى الأبد", "التحدث مع شخص تثق به", "ضرب شيء ما", "عدم الكلام أبدًا"], answer: 1 },
+      { q: "ما الطريقة الجيدة للهدوء قبل الاختبار؟", choices: ["الذعر", "الاستسلام", "أخذ بضعة أنفاس عميقة", "الجدال مع الأصدقاء"], answer: 2 }
+    ] },
+  math: {
+    en: [
+      { q: "What is 12 + 9?", choices: ["20", "21", "22", "19"], answer: 1 },
+      { q: "What is 5 × 6?", choices: ["11", "25", "30", "36"], answer: 2 },
+      { q: "How many days are in one week?", choices: ["5", "6", "7", "8"], answer: 2 }
+    ],
+    ar: [
+      { q: "كم يساوي ⁦12 + 9⁩؟", choices: ["20", "21", "22", "19"], answer: 1 },
+      { q: "كم يساوي ⁦5 × 6⁩؟", choices: ["11", "25", "30", "36"], answer: 2 },
+      { q: "كم يومًا في الأسبوع الواحد؟", choices: ["5", "6", "7", "8"], answer: 2 }
+    ] },
+  english: {
+    en: [
+      { q: "What is the opposite of \"up\"?", choices: ["Left", "Down", "Over", "High"], answer: 1 },
+      { q: "Which of these words is a number?", choices: ["Green", "Run", "Table", "Seven"], answer: 3 },
+      { q: "How many letters are in the English alphabet?", choices: ["24", "25", "26", "28"], answer: 2 }
+    ],
+    ar: [
+      { q: "ما عكس كلمة \"up\"؟", choices: ["left", "down", "over", "high"], answer: 1 },
+      { q: "أيّ هذه الكلمات اسم رقم؟", choices: ["green", "run", "table", "seven"], answer: 3 },
+      { q: "كم حرفًا في الأبجدية الإنجليزية؟", choices: ["24", "25", "26", "28"], answer: 2 }
+    ] },
+  oil: {
+    en: [
+      { q: "What do we call oil that comes straight out of the ground, before it is refined?", choices: ["Olive oil", "Crude oil", "Fresh water", "Milk"], answer: 1 },
+      { q: "Which of these is made from oil?", choices: ["Wool", "Paper", "Plastic", "Wood"], answer: 2 },
+      { q: "What is another name for crude oil?", choices: ["Sugar", "Wheat", "Petroleum", "Cotton"], answer: 2 }
+    ],
+    ar: [
+      { q: "ماذا نسمي النفط الذي يخرج من الأرض قبل تكريره؟", choices: ["زيت الزيتون", "النفط الخام", "الماء العذب", "الحليب"], answer: 1 },
+      { q: "أيّ هذه الأشياء يُصنع من النفط؟", choices: ["الصوف", "الورق", "البلاستيك", "الخشب"], answer: 2 },
+      { q: "ما الاسم الآخر للنفط الخام؟", choices: ["السكر", "القمح", "البترول", "القطن"], answer: 2 }
+    ] },
+  history: {
+    en: [
+      { q: "Who was the first president of the United States?", choices: ["Napoleon", "George Washington", "Julius Caesar", "Genghis Khan"], answer: 1 },
+      { q: "What did people in ancient Egypt write on before paper?", choices: ["Plastic", "Screens", "Papyrus", "Metal sheets"], answer: 2 },
+      { q: "Who invented the light bulb?", choices: ["Napoleon", "Cleopatra", "Columbus", "Thomas Edison"], answer: 3 }
+    ],
+    ar: [
+      { q: "من كان أول رئيس للولايات المتحدة؟", choices: ["نابليون", "جورج واشنطن", "يوليوس قيصر", "جنكيز خان"], answer: 1 },
+      { q: "على ماذا كان المصريون القدماء يكتبون قبل الورق؟", choices: ["البلاستيك", "الشاشات", "البردي", "ألواح المعادن"], answer: 2 },
+      { q: "من اخترع المصباح الكهربائي؟", choices: ["نابليون", "كليوباترا", "كولومبوس", "توماس إديسون"], answer: 3 }
+    ] }
+};
 const QUESTION_CHANGES = 2; /* how many times a player may change a question in each trial */
+function backupsFor(i) {
+  const l = LOCKS[i], set = BACKUP[l.subject];
+  return set ? [...set[l.lang === "ar" ? "ar" : "en"]] : [];
+}
 function sparesFor(i) {
   const l = LOCKS[i], set = SPARE[l.subject];
   return set ? [...set[l.lang === "ar" ? "ar" : "en"]] : [];
@@ -1749,6 +1834,7 @@ const TEXT = {
   en: (f) => ({
     letters: "ABCD",
     questions: (n) => `${n} questions`,
+    backupRule: (n) => `${n} backup questions if you slip`,
     seconds: (s) => `${s} seconds each`,
     passRule: (p) => `Get ${p} right to pass`,
     prize: (lock) => `Prize: the code to ${lock}`,
@@ -1785,6 +1871,7 @@ const TEXT = {
   ar: (f) => ({
     letters: "أبجد",
     questions: (n) => `${n} أسئلة`,
+    backupRule: (n) => `${n} أسئلة احتياطية إن أخطأت`,
     seconds: (s) => `${s} ثوانٍ لكل سؤال`,
     passRule: (p) => f ? `تحتاجين ${p} إجابات صحيحة للنجاح` : `تحتاج ${p} إجابات صحيحة للنجاح`,
     prize: (lock) => `الجائزة: رمز ${lock}`,
@@ -2683,7 +2770,7 @@ function renderIntro() {
         <p class="subj-head">${me.subject ? T.yourSubject : T.chooseSubject}</p>
         <div class="subj-grid">${cards}</div>
       </div>
-      <div class="q-rules"><span>${T.questions(5)}</span><span>${T.seconds(QUESTION_SECONDS)}</span><span>${T.passRule(PASS_MARK)}</span><span>${esc(T.prize(me.lockLabel))}</span></div>
+      <div class="q-rules"><span>${T.questions(5)}</span><span>${T.backupRule(BACKUP_MAX)}</span><span>${T.seconds(QUESTION_SECONDS)}</span><span>${T.passRule(PASS_MARK)}</span><span>${esc(T.prize(me.lockLabel))}</span></div>
       <button type="button" class="btn-main" id="qStart" ${pick ? "" : "disabled"}>${T.begin}</button>
     </div>`;
   quizBody.querySelectorAll(".subj").forEach(b => b.addEventListener("click", () => {
@@ -2794,6 +2881,7 @@ function startTrialRun() {
   quiz.results = [];
   quiz.list = questionsFor(quiz.i);
   quiz.spares = sparesFor(quiz.i);
+  quiz.backups = backupsFor(quiz.i).slice(0, BACKUP_MAX);
   quiz.changes = QUESTION_CHANGES;
   renderQuestion();
 }
@@ -2892,7 +2980,7 @@ function renderQuestion() {
   function next() {
     if (quizEl.hidden) return;
     quiz.q++;
-    if (quiz.q < n) renderQuestion(); else renderResult();
+    if (quiz.q < quiz.list.length) renderQuestion(); else renderResult();
   }
 
   function reveal() {
@@ -2928,7 +3016,12 @@ function renderQuestion() {
     note.textContent = ok ? T.correct : picked.size === 0 ? T.timeout : T.wrong;
     quiz.results[quiz.q] = ok;
     ok ? Music.correct() : Music.incorrect();
-    ok ? bridgeTo(brPos + 1) : bridgeShake();
+    if (ok) bridgeTo(brPos + 1);
+    else {
+      bridgeShake();
+      /* a slip is not the end: a backup question joins the trial, just before the Sacrifice Question */
+      if (quiz.backups.length) { quiz.list.splice(quiz.list.length - 1, 0, quiz.backups.shift()); }
+    }
     setTimeout(next, 1600);
   }
 }
@@ -3148,7 +3241,7 @@ function showSacrifice(picked, done, alreadyLost) {
 }
 
 function renderResult() {
-  const i = quiz.i, n = questionsFor(i).length, T = tx(i);
+  const i = quiz.i, n = quiz.list.length, T = tx(i);
   const score = quiz.results.filter(Boolean).length;
   const passed = score >= PASS_MARK;
   if (passed) {
