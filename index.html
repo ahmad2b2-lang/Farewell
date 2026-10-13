@@ -1549,7 +1549,7 @@ const LOCKS = [
 /* ===== Trials: one quiz per person, in the same order as LOCKS =====
    Each question has 4 choices; "answer" is the position of the right one (0 = first).
    "intro" is the explanation shown before the trial starts. */
-const PASS_MARK = 5; /* correct answers needed to cross the bridge: 5 steps (the Sacrifice Question counts as a step) */
+const PASS_MARK = 4; /* correct answers needed to cross the bridge (4 steps); the Sacrifice Question is outside the count */
 /* The Sacrifice Question: the last question of every trial.
    The player may pick one, both or neither choice; any answer counts as correct.
    When time runs out a pop-up shows what happened on the boat. */
@@ -1860,6 +1860,7 @@ const TEXT = {
     submit: "Submit",
     change: (n) => `Change question (${n} left)`,
     qOf: (a, n) => `Question ${a} of ${n}`,
+    sacLabel: "Sacrifice Question · not scored",
     secsLeft: "seconds left",
     correct: "Correct!", wrong: "Wrong answer.", timeout: "Time's up. No answer was chosen.",
     passed: "Trial passed",
@@ -1897,6 +1898,7 @@ const TEXT = {
     submit: "تأكيد الإجابة",
     change: (n) => `تغيير السؤال (متبقٍ ${n})`,
     qOf: (a, n) => `السؤال ${a} من ${n}`,
+    sacLabel: "سؤال التضحية · بلا درجات",
     secsLeft: "ثوانٍ متبقية",
     correct: "إجابة صحيحة!", wrong: "إجابة خاطئة.", timeout: "انتهى الوقت ولم تُختر أي إجابة.",
     passed: "اجتزتَ التحدّي".replace("اجتزتَ", f ? "اجتزتِ" : "اجتزتَ"),
@@ -2803,7 +2805,7 @@ function renderIntro() {
         <p class="subj-head">${me.subject ? T.yourSubject : T.chooseSubject}</p>
         <div class="subj-grid">${cards}</div>
       </div>
-      <div class="q-rules"><span>${T.questions(5)}</span><span>${T.backupRule(BACKUP_MAX)}</span><span>${T.seconds(QUESTION_SECONDS)}</span><span>${T.passRule(PASS_MARK)}</span><span>${esc(T.prize(me.lockLabel))}</span></div>
+      <div class="q-rules"><span>${T.questions(PASS_MARK)}</span><span>${T.backupRule(BACKUP_MAX)}</span><span>${T.seconds(QUESTION_SECONDS)}</span><span>${T.passRule(PASS_MARK)}</span><span>${esc(T.prize(me.lockLabel))}</span></div>
       <button type="button" class="btn-main" id="qStart" ${pick ? "" : "disabled"}>${T.begin}</button>
     </div>`;
   quizBody.querySelectorAll(".subj").forEach(b => b.addEventListener("click", () => {
@@ -2928,10 +2930,12 @@ function renderQuestion() {
   const qs = quiz.list, item = qs[quiz.q], n = qs.length, T = tx(quiz.i);
   const multi = Array.isArray(item.answer);
   const answers = new Set(multi ? item.answer : [item.answer]);
-  const dots = qs.map((_, k) =>
+  /* the Sacrifice Question is the last item and is outside the count: no dot, no number, no bridge step */
+  const counted = qs.length - 1;
+  const dots = qs.slice(0, counted).map((_, k) =>
     `<span class="q-dot ${quiz.results[k] === true ? "right" : quiz.results[k] === false ? "wrong" : ""} ${k === quiz.q ? "now" : ""}"></span>`).join("");
   quizBody.innerHTML = `
-    <div class="q-meta"><span>${T.qOf(quiz.q + 1, n)}</span><span class="q-dots" aria-hidden="true">${dots}</span></div>
+    <div class="q-meta"><span>${item.sacrifice ? T.sacLabel : T.qOf(quiz.q + 1, counted)}</span><span class="q-dots" aria-hidden="true">${dots}</span></div>
     <div class="q-timer"><div class="q-bar" id="qBar"><i></i></div><span class="q-secs" id="qSecs" aria-label="${T.secsLeft}">${QUESTION_SECONDS}</span></div>
     <p class="q-text">${esc(item.q)}</p>
     <div class="opts" role="${multi ? "group" : "radiogroup"}" aria-label="Choices">${item.choices.map((c, k) =>
@@ -3024,7 +3028,6 @@ function renderQuestion() {
     if (item.sacrifice) {
       /* the Sacrifice Question is always correct; the pop-up tells the story */
       quiz.results[quiz.q] = true;
-      bridgeTo(brPos + 1);
       opts.forEach(o => {
         o.disabled = true;
         o.classList.remove("picked");
@@ -3274,8 +3277,8 @@ function showSacrifice(picked, done, alreadyLost) {
 }
 
 function renderResult() {
-  const i = quiz.i, n = quiz.list.length, T = tx(i);
-  const score = quiz.results.filter(Boolean).length;
+  const i = quiz.i, n = quiz.list.length - 1, T = tx(i);
+  const score = quiz.results.slice(0, n).filter(Boolean).length; /* the Sacrifice Question is not scored */
   const passed = score >= PASS_MARK;
   if (passed) {
     const door = document.querySelector(`.trial-btn[data-i="${i}"]`);
