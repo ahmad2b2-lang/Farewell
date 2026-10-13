@@ -824,13 +824,19 @@ h1 {
 .a-ghost { opacity: 0; }
 .a-ghost.rise { animation: ghostRise 3s ease-out .4s forwards; }
 @keyframes ghostRise { 0% { opacity: 0; transform: translateY(10px); } 40% { opacity: .95; } 100% { opacity: 0; transform: translateY(-60px); } }
+.hero-outer.turn { filter: drop-shadow(0 0 3px #ffe27a) drop-shadow(0 0 7px #ffd24a); }
+.w-giggle { transform-box: fill-box; transform-origin: 50% 100%; animation: giggle .5s ease-in-out infinite alternate; }
+@keyframes giggle { from { transform: rotate(-5deg); } to { transform: rotate(5deg) translateY(-3px); } }
+.w-ha { font: 800 11px var(--f-body); fill: #fff6c8; opacity: 0; animation: haha 1.4s ease-out infinite; }
+@keyframes haha { 0% { opacity: 0; transform: translateY(6px); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
+@media (prefers-reduced-motion: reduce) { .w-giggle, .w-ha { animation: none; } .w-ha { opacity: 1; } }
 .h-act.lunge { animation: hlunge .52s ease-in-out; }
 @keyframes hlunge { 45% { transform: translateX(-40px); } }
 .h-act.hurt { animation: hhurt .52s linear; }
 @keyframes hhurt { 0%, 100% { transform: none; filter: none; } 20% { transform: translateX(6px); filter: brightness(.6) sepia(1) saturate(6) hue-rotate(-40deg); } 50% { transform: translateX(-5px); } 70% { transform: translateX(3px); filter: brightness(.7) sepia(1) saturate(6) hue-rotate(-40deg); } }
 .h-act.ko { animation: hko 1s ease-in forwards; }
 @keyframes hko { to { transform: rotate(80deg) translate(-6px, 4px); filter: grayscale(1) brightness(.7); } }
-#heroOuter.guarding { filter: drop-shadow(0 0 3px #7fd0ff) drop-shadow(0 0 6px #7fd0ff); }
+.hero-outer.guarding { filter: drop-shadow(0 0 3px #7fd0ff) drop-shadow(0 0 6px #7fd0ff); }
 .aura { opacity: 0; transition: opacity .25s ease; }
 .aura.on { opacity: 1; }
 .aura .glow { transform-box: fill-box; transform-origin: center; animation: auraPulse .45s ease-in-out infinite alternate; }
@@ -844,13 +850,13 @@ h1 {
 .pop.zero { color: #d8dde6; }
 .pop.mp { color: #8fd0ff; }
 .h-sad { opacity: 0; transition: opacity .3s ease; }
-#heroOuter.scared .h-sad { opacity: 1; }
-#heroOuter.scared .f-mouth { opacity: 0; }
-#heroOuter.scared { transform-box: fill-box; transform-origin: 50% 100%; animation: tremble .11s linear infinite; }
+.hero-outer.scared .h-sad { opacity: 1; }
+.hero-outer.scared .f-mouth { opacity: 0; }
+.hero-outer.scared { transform-box: fill-box; transform-origin: 50% 100%; animation: tremble .11s linear infinite; }
 @keyframes tremble { 0% { transform: translate(0, 0); } 25% { transform: translate(-1.2px, .4px); } 50% { transform: translate(1.2px, -.4px); } 75% { transform: translate(-.8px, -.3px); } 100% { transform: translate(.9px, .4px); } }
 .sweat { transform-box: fill-box; animation: sweatDrop 1s ease-in infinite; }
 @keyframes sweatDrop { from { transform: translateY(0); opacity: 1; } to { transform: translateY(6px); opacity: 0; } }
-#heroOuter.cheered { transform-box: fill-box; transform-origin: 50% 100%; animation: cheer .45s ease-out 2; }
+.hero-outer.cheered { transform-box: fill-box; transform-origin: 50% 100%; animation: cheer .45s ease-out 2; }
 @keyframes cheer { 50% { transform: translateY(-6px); } }
 .speech {
   position: absolute; left: 60%; top: 13%;
@@ -2954,14 +2960,6 @@ function renderQuestion() {
 
   const opts = [...quizBody.querySelectorAll(".opt")];
   const picked = new Set();
-  /* once any player has saved only themselves, Ahmad is gone: his choice is faded for everyone after */
-  const ahmadWasLost = !!item.sacrifice && ahmadLost;
-  if (ahmadWasLost) {
-    const ah = opts[1];
-    ah.disabled = true;
-    ah.classList.add("faded");
-    ah.setAttribute("aria-disabled", "true");
-  }
   opts.forEach(btn => btn.addEventListener("click", () => {
     const k = +btn.dataset.k;
     if (multi) {
@@ -3040,9 +3038,10 @@ function renderQuestion() {
         o.classList.add(picked.has(+o.dataset.k) ? "right" : "dim");
       });
       LOCKS[quiz.i].sacDone = true;
+      LOCKS[quiz.i].sacPick = picked.has(0) && picked.has(1) ? "both" : picked.has(0) ? "self" : picked.has(1) ? "ahmad" : "none";
       /* any answer other than saving both means Ahmad is gone, for every player after this one too */
       if (!(picked.has(0) && picked.has(1))) ahmadLost = true;
-      setTimeout(() => { if (!quizEl.hidden) showSacrifice(picked, next, ahmadWasLost); }, 700);
+      setTimeout(() => { if (!quizEl.hidden) showSacrifice(picked, next); }, 700);
       return;
     }
     const ok = picked.size === answers.size && [...picked].every(k => answers.has(k));
@@ -3250,15 +3249,11 @@ function boatScene(mode, T, look) {
   </svg>`;
 }
 
-function showSacrifice(picked, done, alreadyLost) {
+function showSacrifice(picked, done) {
   const self = picked.has(0), ahmad = picked.has(1), both = self && ahmad;
   const T = tx(quiz.i), S = T.sac, lang = LOCKS[quiz.i].lang;
   let title, text, mode = both ? "both" : "sacrifice";
-  if (alreadyLost) {
-    mode = "alone";
-    title = S.aloneT;
-    text = self ? S.aloneSelf : S.aloneNone;
-  } else if (both) {
+  if (both) {
     title = S.bothT; text = S.both;
   } else {
     title = S.lostT;
@@ -3269,13 +3264,6 @@ function showSacrifice(picked, done, alreadyLost) {
   card.dir = lang === "ar" ? "rtl" : "ltr";
   $("sacGo").textContent = T.cont;
   if (mode !== "both") ahmadDrowned = true;
-  if (mode === "sacrifice") {
-    if (self && !battleFoeSelf) { battleFoe = quiz.i; battleFoeSelf = true; }
-    else if (battleFoe === null) battleFoe = quiz.i;
-  } else if (mode === "alone" && self && !battleFoeSelf) {
-    /* Ahmad was already lost earlier; the first player to save only themselves afterwards faces the zombie */
-    battleFoe = quiz.i; battleFoeSelf = true;
-  }
   $("sacArt").innerHTML = boatScene(mode, T, LOCKS[quiz.i]);
   $("sacTitle").textContent = title;
   $("sacText").textContent = text;
@@ -3514,7 +3502,7 @@ function goCredits() {
   const ROLL = 22600;                     /* the roll finishes, then The End fades in */
   setTimeout(() => Music.fadeCredits(5), ROLL - 4400);
   setTimeout(() => $("theEnd").classList.add("show"), ROLL + 600);
-  if (battleFoe !== null) setTimeout(zombieRises, ROLL + 600 + 5500);
+  if (battleFighters().length) setTimeout(zombieRises, ROLL + 600 + 5500);
 }
 
 const CERT_TEXT = {
@@ -3568,7 +3556,8 @@ function certificate(l, i) {
    The zombie never attacks. He shuffles toward the player for ZOMBIE_SECONDS.
    Defeat him first and he rests in peace; if he reaches the player, he pats their head, smiles and fades away. */
 const ZOMBIE_SECONDS = 30;
-let battleFoe = null, battleFoeSelf = false;
+/* players who chose "Save Yourself" alone fight Zombie Ahmad; everyone else watches from the sky */
+const battleFighters = () => LOCKS.map((l, i) => l.sacPick === "self" ? i : -1).filter(i => i >= 0);
 const BT = {
   en: (n, f) => ({
     enemy: "Zombie Ahmad", hp: "HP", mp: "MP",
@@ -3718,13 +3707,27 @@ function ghostArt() {
 
 
 const ENEMY_X0 = 125, ENEMY_X1 = 262, ENEMY_Y = 204, ENEMY_SC = 1.2;
-function battleScene(l) {
+function battleScene(H, W) {
+  const sad = `<g class="h-sad">
+        <path d="M-4 -44.8 Q0 -48.6 4 -44.8" fill="none" stroke="${FACE}" stroke-width="1.7" stroke-linecap="round"/>
+        <path d="M-6.2 -56 L-2 -54.4 M6.2 -56 L2 -54.4" stroke="${FACE}" stroke-width="1.2" stroke-linecap="round"/>
+        <path class="sweat" d="M9.5 -57 q2.2 3.8 0 5.4 q-2.2 -1.6 0 -5.4z" fill="#8cc4f0" stroke="#4d8fc4" stroke-width=".5"/>
+      </g>`;
+  const look = { line: "#ece5d7", hairEdge: "rgba(255,255,255,.35)", arms: "down" };
+  const heroes = H.map((h, k) => `<g transform="translate(${h.x} 204) scale(${h.sc})"><g class="hero-outer" id="hOut${k}">${playerAura().replace('id="auraFire"', `id="auraFire${k}"`).replace('id="auraThunder"', `id="auraThunder${k}"`)}<g id="hAct${k}" class="h-act">${figure(LOCKS[h.i], 0, 0, "stand", look)}${sad}</g></g></g>`).reverse().join("");
+  const sky = W.map((i, j) => {
+    const x = 48 + j * 84, ha = LOCKS[i].lang === "ar" ? "هاها!" : "ha ha!";
+    return `<ellipse cx="${x}" cy="91" rx="34" ry="9" fill="#cfd8ee" opacity=".95"/>
+    <g transform="translate(${x} 88) scale(.56)"><g class="w-giggle" style="animation-delay:${(j * .17).toFixed(2)}s">${figure(LOCKS[i], 0, 0, "stand", look)}</g></g>
+    <ellipse cx="${x - 15}" cy="90" rx="15" ry="8" fill="#e4eafa"/><ellipse cx="${x + 14}" cy="89" rx="17" ry="9" fill="#e4eafa"/>
+    <text class="w-ha" x="${x + 17}" y="60" style="animation-delay:${(j * .45).toFixed(2)}s">${ha}</text>`;
+  }).join("");
   const stars = [[24, 20], [62, 46], [104, 16], [150, 34], [196, 14], [238, 40], [276, 22], [372, 70], [388, 24], [176, 60]]
     .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.1" fill="#f3ead0" opacity=".8"/>`).join("");
   const graves = [[214, 196, 11], [246, 194, 9], [372, 198, 12]]
     .map(([x, y, w]) => `<path d="M${x - w} ${y} V${y - w * 1.6} Q${x - w} ${y - w * 2.6} ${x} ${y - w * 2.6} Q${x + w} ${y - w * 2.6} ${x + w} ${y - w * 1.6} V${y} Z" fill="#30384a" stroke="#1d2230" stroke-width="1.2"/>`).join("");
   return `
-  <svg class="bf-art" viewBox="0 0 400 240" role="img" aria-label="Zombie Ahmad shuffles toward ${esc(l.local || l.name)} in a moonlit graveyard">
+  <svg class="bf-art" viewBox="0 0 400 240" role="img" aria-label="Zombie Ahmad shuffles toward the fighters in a moonlit graveyard while the others giggle from the clouds">
     <defs>
       ${SHEMAGH_DEFS}
       <linearGradient id="bSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a0f1f"/><stop offset="1" stop-color="#2b1d3c"/></linearGradient>
@@ -3746,12 +3749,8 @@ function battleScene(l) {
       <text x="62" y="178" text-anchor="middle" font-family="Alegreya Sans, sans-serif" font-weight="700" font-size="8.5" fill="#30363d">Ahmad</text>
     </g>
     <g class="fog" fill="#c9d4e8" opacity=".12"><ellipse cx="90" cy="206" rx="80" ry="8"/><ellipse cx="300" cy="210" rx="110" ry="9"/></g>
-    <g transform="translate(305 204) scale(1.5)"><g id="heroOuter">${playerAura()}<g id="heroAct" class="h-act">${figure(l, 0, 0, "stand", { line: "#ece5d7", hairEdge: "rgba(255,255,255,.35)", arms: "down" })}
-      <g class="h-sad">
-        <path d="M-4 -44.8 Q0 -48.6 4 -44.8" fill="none" stroke="${FACE}" stroke-width="1.7" stroke-linecap="round"/>
-        <path d="M-6.2 -56 L-2 -54.4 M6.2 -56 L2 -54.4" stroke="${FACE}" stroke-width="1.2" stroke-linecap="round"/>
-        <path class="sweat" d="M9.5 -57 q2.2 3.8 0 5.4 q-2.2 -1.6 0 -5.4z" fill="#8cc4f0" stroke="#4d8fc4" stroke-width=".5"/>
-      </g></g></g></g>
+    ${sky}
+    ${heroes}
     <g id="enemyPos" transform="translate(${ENEMY_X0} ${ENEMY_Y}) scale(${ENEMY_SC})">
       <g id="enemyAct" class="e-act"><g class="e-idle">${zombieArt()}</g></g>
       ${strikeArt()}
@@ -3760,38 +3759,65 @@ function battleScene(l) {
   </svg>`;
 }
 
-function startBattle() {
-  const i = battleFoe, l = LOCKS[i], lang = l.lang || "en", n = l.local || l.name;
-  const T = BT[lang](n, !!l.female);
-  const color = l.outfit === "dress" ? l.outfitColor : ["#d65c4d", "#5b92d4", "#4fb582", "#e4ab3e"][i];
-  B = { T, hp: 100, hpMax: 100, mp: 30, mpMax: 30, ehp: 220, ehpMax: 220, ethers: 2, ex: ENEMY_X0, over: false, raf: 0, shown: ZOMBIE_SECONDS, lastStep: 0 };
+function setHero(k) {
+  if (B.H[B.k]) { B.H[B.k].mp = B.mp; B.H[B.k].ethers = B.ethers; }
+  const h = B.H[k], l = LOCKS[h.i];
+  B.k = k; B.mp = h.mp; B.ethers = h.ethers; B.T = h.T;
   const el = $("battle");
-  el.lang = lang;
-  el.dir = lang === "ar" ? "rtl" : "ltr";
+  el.lang = h.lang;
+  el.dir = h.lang === "ar" ? "rtl" : "ltr";
+  $("eName").textContent = h.T.enemy;
+  $("eName").parentNode.dir = el.dir;
+  const nm = $("bName");
+  nm.textContent = h.n;
+  nm.style.color = h.color;
+  B.H.forEach((_, j) => $("hOut" + j).classList.toggle("turn", B.many && j === k));
+  refreshBars();
+}
+function startBattle() {
+  const F = battleFighters(), n = F.length;
+  const W = LOCKS.map((_, i) => i).filter(i => !F.includes(i));
+  const xs = [[305], [300, 350], [292, 330, 368], [284, 314, 344, 374]][n - 1];
+  const sc = [1.5, 1.4, 1.25, 1.15][n - 1];
+  const H = F.map((i, k) => {
+    const l = LOCKS[i], lang = l.lang || "en", nm = l.local || l.name;
+    return { i, x: xs[k], sc, lang, n: nm, T: BT[lang](nm, !!l.female), color: vsColor(i), mp: 30, ethers: 2 };
+  });
+  B = { H, k: 0, many: n > 1, T: H[0].T, hp: 100, hpMax: 100, mp: 30, mpMax: 30, ehp: 220, ehpMax: 220, ethers: 2, ex: ENEMY_X0, x1: xs[0] - 43, over: false, raf: 0, shown: ZOMBIE_SECONDS, lastStep: 0 };
+  const T = H[0].T, el = $("battle");
   el.innerHTML = `
     <div class="bf" id="bf" dir="ltr">
-      ${battleScene(l)}
-      <div class="ehud" dir="${el.dir}"><span>${T.enemy}</span><div class="bar ebar"><i id="eHp"></i></div></div>
+      ${battleScene(H, W)}
+      <div class="ehud"><span id="eName"></span><div class="bar ebar"><i id="eHp"></i></div></div>
       <div class="btime" id="bTimeBox" aria-label="seconds left"><span aria-hidden="true">⏳</span><b id="bTime">${ZOMBIE_SECONDS}</b></div>
       <div class="pops" id="pops"></div>
-      <div class="speech" id="speech" lang="${lang}" dir="${el.dir}" hidden>${T.please}</div>
+      <div class="speech" id="speech" lang="${H[0].lang}" dir="${H[0].lang === "ar" ? "rtl" : "ltr"}" hidden>${T.please}</div>
       <div class="b-end" id="bEnd" hidden><p id="bEndTitle"></p><button type="button" class="btn-main" id="bEndVs"></button><button type="button" class="ghost b-end-alt" id="bEndBtn"></button></div>
     </div>
     <div class="rpgwin bmsg" id="bMsg" aria-live="polite"></div>
     <div class="bwins">
       <div class="rpgwin bcmd" id="bCmd"></div>
       <div class="rpgwin bstat">
-        <p class="bname" style="color: ${color}">${esc(n)}</p>
+        <p class="bname" id="bName"></p>
         <div class="brow"><span>${T.hp}</span><div class="bar hpbar"><i id="hHp"></i></div><b id="hHpN"></b></div>
         <div class="brow"><span>${T.mp}</span><div class="bar mpbar"><i id="hMp"></i></div><b id="hMpN"></b></div>
       </div>
     </div>`;
-  refreshBars();
+  B.k = -1; B.H.forEach(h => h.mp = 30);
+  setHero(0);
   Music.toBattle();
   (async () => {
-    await say(T.appear, 1700, true);
-    Music.groan();
-    await say(T.hint, 2000, true);
+    /* the opening lines are told once per language among the fighters */
+    const seen = [];
+    for (let k = 0; k < H.length; k++) {
+      if (seen.includes(H[k].lang)) continue;
+      seen.push(H[k].lang);
+      setHero(k);
+      await say(H[k].T.appear, 1700, true);
+      Music.groan();
+      await say(H[k].T.hint, 2000, true);
+    }
+    setHero(0);
     startWalk();
     playerTurn();
   })();
@@ -3804,7 +3830,7 @@ function startWalk() {
   const step = (now) => {
     if (B.over) return;
     const p = Math.min(1, (now - t0) / (ZOMBIE_SECONDS * 1000));
-    B.ex = ENEMY_X0 + (ENEMY_X1 - ENEMY_X0) * p;
+    B.ex = ENEMY_X0 + (B.x1 - ENEMY_X0) * p;
     $("enemyPos").setAttribute("transform", `translate(${B.ex.toFixed(1)} ${ENEMY_Y}) scale(${ENEMY_SC})`);
     const left = Math.ceil(ZOMBIE_SECONDS * (1 - p));
     if (left !== B.shown) {
@@ -3812,7 +3838,7 @@ function startWalk() {
       $("bTime").textContent = left;
       $("bTimeBox").classList.toggle("low", left <= 10);
       if (left <= 5 && left > 0) Music.tick();
-      if (left <= 5) $("heroOuter").classList.add("scared");
+      if (left <= 5) document.querySelectorAll(".hero-outer").forEach(e => e.classList.add("scared"));
     }
     if (now - B.lastStep > 850) { B.lastStep = now; Music.shuffle(); }
     if (p >= 1) { reachPlayer(); return; }
@@ -3857,7 +3883,7 @@ function pop(who, text, kind) {
   const p = document.createElement("span");
   p.className = "pop " + (kind || "");
   p.textContent = text;
-  p.style.left = who === "e" ? `${(B.ex / 400 * 100 + 1).toFixed(1)}%` : "76%";
+  p.style.left = who === "e" ? `${(B.ex / 400 * 100 + 1).toFixed(1)}%` : (B.H[B.k].x / 400 * 100).toFixed(1) + "%";
   p.style.top = who === "e" ? "40%" : "50%";
   $("pops").appendChild(p);
   setTimeout(() => p.remove(), 1300);
@@ -3894,6 +3920,7 @@ async function act(fn) {
   await fn();
   if (B.over) return;
   if (B.ehp <= 0) return victory();
+  if (B.many) setHero((B.k + 1) % B.H.length);
   playerTurn();
 }
 
@@ -3915,7 +3942,7 @@ async function gainMp(d) {
 async function doAttack() {
   const T = B.T;
   await say(T.attack, 450);
-  anim("heroAct", "lunge", 520);
+  anim("hAct" + B.k, "lunge", 520);
   await wait(240);
   if (Math.random() < .08) {
     Music.whoosh();
@@ -3935,11 +3962,11 @@ async function doAura(kind) {
   const T = B.T, fire = kind === "fire";
   B.mp -= 8; refreshBars();
   await say(fire ? T.fireCast : T.thunderCast, 300);
-  const aura = $(fire ? "auraFire" : "auraThunder");
+  const aura = $((fire ? "auraFire" : "auraThunder") + B.k);
   aura.classList.add("on");
   fire ? Music.fireRoar() : Music.thunder();
   await wait(850);
-  anim("heroAct", "lunge", 520);
+  anim("hAct" + B.k, "lunge", 520);
   await wait(200);
   anim(fire ? "hitFire" : "hitThunder", "strike-on", 800);
   anim("bf", fire ? "flash-fire" : "flash", 400);
@@ -3951,7 +3978,7 @@ async function doAura(kind) {
 }
 async function doFocus() {
   await say(B.T.focus, 600);
-  anim("auraThunder", "on", 700);
+  anim("auraThunder" + B.k, "on", 700);
   await gainMp(10);
 }
 async function doEther() {
@@ -3980,7 +4007,7 @@ function stopBattle() {
 async function victory() {
   const T = B.T;
   stopBattle();
-  $("heroOuter").classList.remove("scared");
+  document.querySelectorAll(".hero-outer").forEach(e => e.classList.remove("scared"));
   $("enemyAct").classList.add("die");
   Music.groan();
   await say(T.win1, 1800, true);
@@ -3992,19 +4019,19 @@ async function victory() {
 }
 /* time is up: Zombie Ahmad reaches the player, pats their head, smiles and fades away */
 async function reachPlayer() {
+  setHero(0);
   const T = B.T;
   stopBattle();
-  ["auraFire", "auraThunder"].forEach(id => $(id).classList.remove("on"));
-  B.ex = ENEMY_X1;
-  $("heroOuter").classList.add("scared");
+  document.querySelectorAll(".aura").forEach(e => e.classList.remove("on"));
+  B.ex = B.x1;
+  document.querySelectorAll(".hero-outer").forEach(e => e.classList.add("scared"));
   await say(T.reach, 1600, true);
   $("enemyAct").classList.add("smiling", "patting");
   $("speech").hidden = false;
   Music.pat();
   await say(T.pat, 2800, true);
   $("enemyAct").classList.remove("patting");
-  $("heroOuter").classList.remove("scared");
-  $("heroOuter").classList.add("cheered");
+  document.querySelectorAll(".hero-outer").forEach(e => { e.classList.remove("scared"); e.classList.add("cheered"); });
   Music.healSnd();
   await wait(1200);
   $("speech").classList.add("bye");
