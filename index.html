@@ -1155,6 +1155,21 @@ h1 {
 .t-far { fill: var(--gem); opacity: .3; }
 .t-door { fill: var(--wood); stroke: var(--wood-dk); stroke-width: 1.2; }
 .t-band { stroke: var(--iron); stroke-width: 2.5; }
+/* a finished trial: the door swings shut, a padlock locks it and a sign shows the player's code */
+.t-locked { display: none; }
+.trial-btn.done .t-locked { display: block; }
+.trial-btn.done .t-door, .trial-btn.done .t-band, .trial-btn.done .t-far { display: none; }
+.t-shut { transform-box: fill-box; transform-origin: 0 50%; animation: tShut .8s cubic-bezier(.5, 0, .3, 1.2) both; }
+@keyframes tShut { from { transform: scaleX(.12); } }
+.t-sign { transform-box: fill-box; transform-origin: 50% 0; animation: tSign 1.2s ease-out .8s both; }
+@keyframes tSign { 0% { opacity: 0; transform: rotate(-12deg); } 30% { opacity: 1; } 55% { transform: rotate(8deg); } 80% { transform: rotate(-3deg); } 100% { opacity: 1; transform: none; } }
+.t-padlock { animation: tLock .4s ease-out 1.5s both; }
+@keyframes tLock { from { opacity: 0; } }
+.t-sign-lbl { font: 700 6px var(--f-body); letter-spacing: .15em; fill: #6b4a1e; }
+.t-sign-code { font: 700 15px var(--f-mono); letter-spacing: .14em; fill: #2b1d08; direction: ltr; }
+.trial-btn.done { cursor: default; }
+.trial-btn.done:hover { transform: none; }
+.trial-btn.done:hover svg { filter: none; }
 @keyframes emerge { from { opacity: 0; filter: brightness(.3); } }
 
 .flame { transform-box: fill-box; transform-origin: 50% 100%; animation: flick 1.1s ease-in-out infinite alternate; }
@@ -2719,6 +2734,24 @@ $("trialGrid").innerHTML = LOCKS.map((l, i) => `
       <polygon class="t-door" points="22,150 22,60 38,72 38,145"/>
       <line class="t-band" x1="22" y1="84" x2="38" y2="92"/>
       <line class="t-band" x1="22" y1="130" x2="38" y2="132"/>
+      <g class="t-locked">
+        <g class="t-shut">
+          <path d="M22 150 V64 A38 38 0 0 1 98 64 V150 Z" fill="#7a4b2b" stroke="#3b2210" stroke-width="1.6"/>
+          <path d="M41 150 V30 M60 150 V24 M79 150 V30" stroke="#4e2d18" stroke-width="1.2" opacity=".7"/>
+          <path d="M22 76 H98 M22 140 H98" stroke="#2a2d32" stroke-width="4"/>
+        </g>
+        <g class="t-sign">
+          <path d="M42 80 L50 68 M78 80 L70 68" stroke="#6b717b" stroke-width="1.4"/>
+          <rect x="31" y="80" width="58" height="30" rx="3" fill="#e6cf9a" stroke="#6b4a1e" stroke-width="2"/>
+          <text x="60" y="89.5" text-anchor="middle" class="t-sign-lbl">CODE</text>
+          <text x="60" y="105" text-anchor="middle" class="t-sign-code" lang="en">${l.code}</text>
+        </g>
+        <g class="t-padlock" transform="translate(60 128)">
+          <path d="M-6 -4 V-9 A6 6 0 0 1 6 -9 V-4" fill="none" stroke="#aab0b8" stroke-width="2.4"/>
+          <rect x="-9" y="-4" width="18" height="13" rx="2.5" style="fill: var(--gem)" stroke="#2a2d32" stroke-width="1.2"/>
+          <circle cy="2" r="2" fill="#2a2d32"/><rect x="-.9" y="2" width="1.8" height="4" fill="#2a2d32"/>
+        </g>
+      </g>
     </svg>
     <span class="cap" lang="${l.lang}">${l.trial}</span>
     <span class="cap-sub" lang="${l.lang}"></span>
@@ -3245,7 +3278,10 @@ function renderResult() {
   const score = quiz.results.filter(Boolean).length;
   const passed = score >= PASS_MARK;
   if (passed) {
-    document.querySelector(`.trial-btn[data-i="${i}"]`).classList.add("done");
+    const door = document.querySelector(`.trial-btn[data-i="${i}"]`);
+    door.classList.add("done");
+    door.disabled = true;
+    door.setAttribute("aria-label", `${LOCKS[i].trial}: ${LOCKS[i].lockLabel} ${String(LOCKS[i].code).split("").join(" ")}`);
     Music.triumph();
     setTimeout(() => bridgeTo(PASS_MARK, true), 300);
     quizBody.innerHTML = `
@@ -4366,7 +4402,7 @@ async function vsWin(k) {
       if (locks[i]) locks[i].setAttribute("aria-label", l.lockLabel);
       const door = document.querySelector(`.trial-btn[data-i="${i}"]`);
       if (door) {
-        door.setAttribute("aria-label", `Open ${l.trial}`);
+        if (!door.classList.contains("done")) door.setAttribute("aria-label", `Open ${l.trial}`);
         door.querySelector(".cap").textContent = l.trial;
       }
     });
