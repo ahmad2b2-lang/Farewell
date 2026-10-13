@@ -892,6 +892,10 @@ h1 {
 .z-arms { transform-box: fill-box; transform-origin: 0 50%; }
 /* the hands rest on top of the player's head (not over the face) while patting */
 .e-act.smiling .z-arms { transform: translate(6px, -13px) rotate(-12deg); transition: transform .5s ease; }
+.e-act.multi .z-arms { opacity: 0; }
+.zx-arm { animation: zxPat .32s ease-in-out infinite alternate; }
+@keyframes zxPat { from { transform: translateY(-5px); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .zx-arm { animation: none; } }
 .e-act.patting .z-arms { animation: patA .32s ease-in-out infinite alternate; }
 @keyframes patA { from { transform: translate(6px, -17px) rotate(-14deg); } to { transform: translate(6px, -12px) rotate(-11deg); } }
 .e-act.fade { animation: efade 2.4s ease-in forwards; }
@@ -3574,7 +3578,7 @@ const BT = {
     mpGain: (d) => `${n} recovers ${d} MP!`,
     win1: "Zombie Ahmad was defeated!", win2: "You Win", victory: "Victory!",
     reach: `Zombie Ahmad reaches ${n}…`,
-    pat: `He gently pats ${n} on the head and smiles.`,
+    pat: "Ahmad pats on the head",
     fade: "Then Ahmad fades away, at peace.",
     please: "Be Happy, please!",
     endTitle: "The End", again: "Play Again", vs: "VS Battle"
@@ -3594,7 +3598,7 @@ const BT = {
     mpGain: (d) => `${n} ${f ? "تستعيد" : "يستعيد"} ${d} من الطاقة!`,
     win1: "تمت هزيمة أحمد الزومبي!", win2: f ? "لقد فزتِ!" : "لقد فزت!", victory: "النصر!",
     reach: `وصل أحمد الزومبي إلى ${n}…`,
-    pat: `ربّت بلطف على رأس ${n} وابتسم.`,
+    pat: "أحمد يربّت على الرأس",
     fade: "ثم تلاشى أحمد بسلام.",
     please: f ? "كوني سعيدة، أرجوكِ!" : "كن سعيدًا، أرجوك!",
     endTitle: "النهاية", again: f ? "العبي مرة أخرى" : "العب مرة أخرى", vs: "مواجهة ثنائية"
@@ -4026,6 +4030,15 @@ async function reachPlayer() {
   B.ex = B.x1;
   document.querySelectorAll(".hero-outer").forEach(e => e.classList.add("scared"));
   await say(T.reach, 1600, true);
+  if (B.many) {
+    /* stretch one arm out to every fighter so Ahmad can pat all of them at once */
+    const arms = B.H.map(h => {
+      const dx = (h.x - B.x1) / ENEMY_SC, y = -58 * h.sc / ENEMY_SC - 2;
+      return `<g class="zx-arm" style="animation-delay:${(h.x % 7) * .03}s"><path d="M9 -72 Q${(dx / 2).toFixed(1)} ${(y - 6).toFixed(1)} ${dx.toFixed(1)} ${y.toFixed(1)}" fill="none" stroke="#8fbf7a" stroke-width="5" stroke-linecap="round"/><circle cx="${dx.toFixed(1)}" cy="${y.toFixed(1)}" r="3.8" fill="#8fbf7a" stroke="#2f3a2a" stroke-width="1.2"/></g>`;
+    }).join("");
+    $("enemyAct").insertAdjacentHTML("beforeend", `<g id="zExtra">${arms}</g>`);
+    $("enemyAct").classList.add("multi");
+  }
   $("enemyAct").classList.add("smiling", "patting");
   $("speech").hidden = false;
   Music.pat();
