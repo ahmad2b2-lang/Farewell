@@ -4321,12 +4321,14 @@ async function vsAttack(k) {
     return;
   }
   const crit = Math.random() < .15;
-  const d = Math.round(rnd(10, 16) * (crit ? 1.6 : 1));
+  const d = Math.round(rnd(10, 16) * (crit ? 1.6 : 1) * vsPower(k));
   anim("bf", crit ? "flash" : "flash-soft", 400);
   vsHurt(1 - k, d, crit);
   if (crit) await say(T.crit, 600);
   await say(T.dmg(d), 850);
 }
+/* the girls hit 1.2× harder in the VS battle */
+const vsPower = (k) => V.f[k].l.female ? 1.2 : 1;
 async function vsAura(kind, k) {
   if (k === undefined) k = V.turn;
   const T = B.T, fire = kind === "fire";
@@ -4340,7 +4342,7 @@ async function vsAura(kind, k) {
   await wait(200);
   anim(fire ? `vsHitFire${1 - k}` : `vsHitThunder${1 - k}`, "strike-on", 800);
   anim("bf", fire ? "flash-fire" : "flash", 400);
-  const d = rnd(22, 28);
+  const d = Math.round(rnd(22, 28) * vsPower(k));
   vsHurt(1 - k, d, true);
   await wait(250);
   aura.classList.remove("on");
