@@ -1308,7 +1308,7 @@ html { font-size: calc(16px * var(--s)); }
 </head>
 <body>
 
-<section class="intro names" id="names" aria-labelledby="namesTitle">
+<section class="intro names" id="names" aria-labelledby="namesTitle" hidden>
   <div class="intro-inner names-inner">
     <h1 id="namesTitle">Who Enters?</h1>
     <p>Write the name of each player.<span class="names-ar" lang="ar" dir="rtl">اكتبوا اسم كل لاعب.</span></p>
@@ -1317,7 +1317,7 @@ html { font-size: calc(16px * var(--s)); }
   </div>
 </section>
 
-<section class="intro" id="intro" aria-labelledby="introTitle" hidden>
+<section class="intro" id="intro" aria-labelledby="introTitle">
   <div class="intro-inner">
     <svg class="arch" viewBox="0 0 240 230" role="img" aria-label="Stone archway with torches and stairs leading down into darkness">
       <defs>
@@ -4462,17 +4462,9 @@ async function vsWin(k) {
     });
   }
 
-  $("namesForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const typed = LOCKS.map((_, i) => $(`pname${i}`).value.trim().replace(/\s+/g, " "));
-    typed.forEach((v, i) => { if (v) setName(i, v); });
-    try { localStorage.setItem(KEY, JSON.stringify(typed)); } catch (err) {}
-    refreshNames();
-    if (document.activeElement) document.activeElement.blur();
-    Music.tick();
-    goPage($("names"), $("intro"));
-    window.scrollTo(0, 0);
-  });
+  /* the players' names are fixed, so the name screen is skipped */
+  ["Maryam", "Yousuf", "رقية", "إبراهيم"].forEach((v, i) => setName(i, v));
+  refreshNames();
 })();
 </script>
 </body>
