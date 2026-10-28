@@ -8,6 +8,7 @@
 <title>Majlis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -89,7 +90,7 @@ details.addbox summary{cursor:pointer;padding:10px 0;font-weight:500;color:var(-
 /* forms */
 .field{display:block;margin:12px 0}
 .field span{display:block;font-size:.9rem;color:var(--muted);margin-bottom:4px}
-input[type=text],textarea{width:100%;font-size:16px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);resize:vertical}
+input[type=text],input[type=email],input[type=password],textarea{width:100%;font-size:16px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);resize:vertical}
 form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 
 /* lists */
@@ -114,6 +115,9 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .story.done p{color:var(--muted)}
 .story label{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);cursor:pointer}
 .story input{width:20px;height:20px;accent-color:var(--primary)}
+.story small{display:block;margin-top:4px;color:var(--muted);font-size:.8rem}
+.signin{margin:6px 0 16px}
+.signin .field:last-of-type{margin-bottom:16px}
 
 /* games */
 .seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
@@ -251,7 +255,10 @@ en:{
  twoTruthsRules:'Everyone says three things about themselves: two true, one made up. The others guess which one is the lie. The most surprising truth wins the round.',
  debateRules:'Pick sides, even if you don’t agree with yours. One minute each.',next:'Next',or:'or',
  backup:'Backup',exportData:'Save a backup file',importData:'Load a backup file',importDone:'Backup loaded',importFail:'That file is not a Majlis backup.',
- privacy:'Everything you write here stays on this phone. Save a backup now and then, because clearing the browser’s data deletes it.',
+ privacy:'Your stories are saved in your Supabase project. Everything else (friends, topics, meetups) stays on this phone, so save a backup now and then, because clearing the browser’s data deletes it.',
+ signInTitle:'Sign in to keep your stories in Supabase',signInNote:'Use the same admin account as your products app.',email:'Email',password:'Password',signIn:'Sign in',signOut:'Sign out',
+ signInFail:'Sign-in failed. Check the email and password.',signedInAs:'Signed in as',syncFail:'Couldn’t reach Supabase. Check your connection.',retry:'Try again',loading:'Loading…',
+ noSb:'The sign-in couldn’t load. Check your connection and reload the page.',notUploaded:'Only on this phone, uploads when you’re signed in and online',confirmDelStory:'Delete this story?',
  langBtn:'العربية'
 },
 ar:{
@@ -274,7 +281,10 @@ ar:{
  twoTruthsRules:'كل واحد يقول ثلاث معلومات عن نفسه: اثنتان صحيحتان وواحدة مختلقة. والبقية يخمنون الكذبة. أغرب حقيقة تفوز بالجولة.',
  debateRules:'اختاروا الجهتين حتى لو لم تقتنع بجهتك. دقيقة لكل واحد.',next:'التالي',or:'أو',
  backup:'نسخة احتياطية',exportData:'حفظ ملف نسخة احتياطية',importData:'تحميل ملف نسخة احتياطية',importDone:'تم تحميل النسخة',importFail:'هذا الملف ليس نسخة من مجلس.',
- privacy:'كل ما تكتبه هنا يبقى على هذا الجوال فقط. احفظ نسخة احتياطية بين حين وآخر، لأن مسح بيانات المتصفح يحذفه.',
+ privacy:'حكاياتك محفوظة في مشروع Supabase. أما الباقي (الأصدقاء والمواضيع واللقاءات) فيبقى على هذا الجوال، فاحفظ نسخة احتياطية بين حين وآخر لأن مسح بيانات المتصفح يحذفه.',
+ signInTitle:'سجّل الدخول لحفظ حكاياتك في Supabase',signInNote:'استخدم حساب المسؤول نفسه الذي في تطبيق المنتجات.',email:'البريد الإلكتروني',password:'كلمة المرور',signIn:'تسجيل الدخول',signOut:'تسجيل الخروج',
+ signInFail:'فشل تسجيل الدخول. تأكد من البريد وكلمة المرور.',signedInAs:'مسجّل باسم',syncFail:'تعذّر الاتصال بـ Supabase. تأكد من الاتصال.',retry:'حاول مرة أخرى',loading:'جارٍ التحميل…',
+ noSb:'تعذّر تحميل تسجيل الدخول. تأكد من الاتصال وأعد تحميل الصفحة.',notUploaded:'على هذا الجوال فقط، تُرفع عند تسجيل الدخول والاتصال',confirmDelStory:'حذف هذه الحكاية؟',
  langBtn:'English'
 }};
 
@@ -308,6 +318,44 @@ const hue=s=>{let h=0;for(const ch of s)h=(h*31+ch.codePointAt(0))%360;return h}
 const lines=s=>(s||'').split('\n').map(x=>x.trim()).filter(Boolean);
 
 let animateCard=false, recent=[];
+
+/* ---------- supabase (stories only) ---------- */
+const SB_URL='https://bhfgwlkzkbwcwyoypwhy.supabase.co', SB_KEY='sb_publishable_9YylflVQca-62NHsBKSTeA_GY896nj3';
+let sb=null; try{ if(window.supabase&&window.supabase.createClient) sb=window.supabase.createClient(SB_URL,SB_KEY) }catch(e){}
+let session=null, authReady=!sb, storiesBusy=false, storiesErr=false;
+const rowToStory=r=>({id:r.id,text:r.text,shared:r.shared,at:Date.parse(r.created_at),remote:true});
+async function syncStories(){
+  if(!sb||!session||storiesBusy) return;
+  storiesBusy=true; storiesErr=false;
+  try{
+    for(const st of S.stories.filter(x=>!x.remote)){
+      const {data,error}=await sb.from('majlis_stories').insert({text:st.text,shared:!!st.shared,created_at:new Date(st.at||Date.now()).toISOString()}).select().single();
+      if(error) throw error;
+      const i=S.stories.indexOf(st); if(i>=0) S.stories[i]=rowToStory(data);
+      if(S.plan.storyId===st.id) S.plan.storyId=data.id;
+      save();
+    }
+    const {data,error}=await sb.from('majlis_stories').select('id,text,shared,created_at').order('created_at',{ascending:false});
+    if(error) throw error;
+    S.stories=data.map(rowToStory).concat(S.stories.filter(x=>!x.remote));
+  }catch(e){storiesErr=true}
+  storiesBusy=false; save(); if(S.tab==='stories') render();
+}
+async function remoteStory(op,st,fields){
+  if(!st.remote||!sb||!session) return true;
+  const q=sb.from('majlis_stories'); 
+  const {error}=op==='delete'?await q.delete().eq('id',st.id):await q.update(fields).eq('id',st.id);
+  if(error){toast(t('syncFail')); return false}
+  return true;
+}
+if(sb){
+  sb.auth.onAuthStateChange((ev,s)=>{
+    session=s; authReady=true;
+    if(ev==='SIGNED_OUT'){S.stories=S.stories.filter(x=>!x.remote); save()}
+    if(S.tab==='stories') render();
+    if(s&&(ev==='INITIAL_SESSION'||ev==='SIGNED_IN')) setTimeout(syncStories,0);
+  });
+}
 
 /* ---------- topics ---------- */
 function deckPool(){
@@ -452,16 +500,25 @@ function renderMeetup(){
 
 /* ---------- stories ---------- */
 function renderStories(){
-  let h=`<h2 class="h">${esc(t('stories'))}</h2><p class="muted" style="margin-top:-4px">${esc(t('storiesIntro'))}</p>
-  <form class="inline" id="storyForm"><textarea id="storyText" rows="3" dir="auto" placeholder="${esc(t('storyPh'))}" required></textarea><button class="btn primary" type="submit">${esc(t('addStory'))}</button></form>`;
-  if(!S.stories.length) return h+`<p class="empty">${esc(t('storiesEmpty'))}</p>`;
+  let h=`<h2 class="h">${esc(t('stories'))}</h2><p class="muted" style="margin-top:-4px">${esc(t('storiesIntro'))}</p>`;
+  if(!sb) h+=`<p class="empty">${esc(t('noSb'))}</p>`;
+  else if(!authReady) h+=`<p class="muted">${esc(t('loading'))}</p>`;
+  else if(!session) h+=`<form class="item signin" id="signInForm"><strong>${esc(t('signInTitle'))}</strong>
+    <p class="muted" style="margin:4px 0 0;font-size:.9rem">${esc(t('signInNote'))}</p>
+    <label class="field"><span>${esc(t('email'))}</span><input type="email" name="email" autocomplete="username" dir="ltr" required></label>
+    <label class="field"><span>${esc(t('password'))}</span><input type="password" name="password" autocomplete="current-password" dir="ltr" required></label>
+    <button class="btn primary" type="submit" style="width:100%">${esc(t('signIn'))}</button></form>`;
+  if(storiesErr) h+=`<p class="empty">${esc(t('syncFail'))} <button class="link" type="button" data-act="resync">${esc(t('retry'))}</button></p>`;
+  h+=`<form class="inline" id="storyForm"><textarea id="storyText" rows="3" dir="auto" placeholder="${esc(t('storyPh'))}" required></textarea><button class="btn primary" type="submit">${esc(t('addStory'))}</button></form>`;
+  const foot=session?`<p class="muted" style="margin-top:28px;font-size:.88rem">${esc(t('signedInAs'))} <span dir="ltr">${esc(session.user.email)}</span>. <button class="link" type="button" data-act="signOut">${esc(t('signOut'))}</button></p>`:'';
+  if(!S.stories.length) return h+`<p class="empty">${esc(t('storiesEmpty'))}</p>`+foot;
   const list=[...S.stories].sort((a,b)=>(a.shared-b.shared)||(b.at||0)-(a.at||0));
   h+='<ul class="list" style="margin-top:18px">'+list.map(s=>`<li class="item story${s.shared?' done':''}">
-    <p dir="auto">${esc(s.text)}</p>
+    <p dir="auto">${esc(s.text)}${s.remote?'':`<small>${esc(t('notUploaded'))}</small>`}</p>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
       <label><input type="checkbox" data-shared="${s.id}" ${s.shared?'checked':''}>${esc(t('shared'))}</label>
       <button class="link danger" type="button" data-delstory="${s.id}">${esc(t('delete'))}</button>
-    </div></li>`).join('')+'</ul>';
+    </div></li>`).join('')+'</ul>'+foot;
   return h;
 }
 
@@ -497,7 +554,9 @@ function render(){
   const bb=document.getElementById('backupBtn'); bb.innerHTML=ICON.backup; bb.setAttribute('aria-label',t('backup'));
   document.getElementById('tabs').innerHTML=TABS.map(k=>`<button type="button" data-tab="${k}" ${S.tab===k?'aria-current="page"':''}>${ICON[k]}<span>${esc(t(k))}</span></button>`).join('');
   const r={topics:renderTopics,friends:renderFriends,meetup:renderMeetup,stories:renderStories,games:renderGames}[S.tab]||renderTopics;
+  const draft=document.getElementById('storyText'); const keep=draft?draft.value:'';
   document.getElementById('main').innerHTML=r();
+  const nd=document.getElementById('storyText'); if(nd&&keep) nd.value=keep;
   save();
 }
 
@@ -540,7 +599,8 @@ document.addEventListener('click',e=>{
   if(d.pick){
     const ids=S.plan.friendIds; const i=ids.indexOf(d.pick); i<0?ids.push(d.pick):ids.splice(i,1);
     buildPlan(); render(); return}
-  if(d.delstory){S.stories=S.stories.filter(s=>s.id!==d.delstory); render(); return}
+  if(d.delstory){const st=S.stories.find(s=>s.id===d.delstory); if(!st||!confirm(t('confirmDelStory'))) return;
+    remoteStory('delete',st).then(ok=>{if(ok){S.stories=S.stories.filter(s=>s!==st); render()}}); return}
   if(d.mode){S.game={mode:d.mode,i:Math.floor(Math.random()*(d.mode==='wyr'?WYR.length:DEBATE.length)),pick:null}; render(); return}
   if(d.wyr){S.game.pick=S.game.pick===+d.wyr?null:+d.wyr; render(); return}
   switch(d.act){
@@ -557,8 +617,10 @@ document.addEventListener('click',e=>{
       const done=[...document.querySelectorAll('#starters input:checked')].map(i=>i.value);
       sel.forEach(f=>{f.used=f.used||{}; done.forEach(id=>f.used[id]=dt); f.log=f.log||[]; f.log.unshift({d:dt,t:done}); f.lastMet=dt});
       done.forEach(id=>{if(!S.used[id]) S.used[id]=dt});
-      const st=p.storyId&&S.stories.find(s=>s.id===p.storyId); if(st) st.shared=true;
+      const st=p.storyId&&S.stories.find(s=>s.id===p.storyId); if(st){st.shared=true; remoteStory('update',st,{shared:true})}
       S.plan={friendIds:[]}; render(); toast(t('metSaved')); window.scrollTo(0,0); break}
+    case 'resync': syncStories(); break;
+    case 'signOut': if(sb) sb.auth.signOut(); break;
     case 'nextGame': {const n=S.game.mode==='wyr'?WYR.length:DEBATE.length; S.game.i=(S.game.i+1)%n; S.game.pick=null; render(); break}
     case 'export': {
       const blob=new Blob([JSON.stringify({app:'majlis',v:1,data:S},null,2)],{type:'application/json'});
@@ -569,12 +631,13 @@ document.addEventListener('click',e=>{
 
 document.addEventListener('change',e=>{
   if(e.target.id==='hideUsed'){S.hideUsed=e.target.checked; render(); return}
-  if(e.target.dataset.shared){const s=S.stories.find(x=>x.id===e.target.dataset.shared); if(s){s.shared=e.target.checked; render()} return}
+  if(e.target.dataset.shared){const s=S.stories.find(x=>x.id===e.target.dataset.shared); if(!s) return; const v=e.target.checked;
+    s.shared=v; render(); remoteStory('update',s,{shared:v}).then(ok=>{if(!ok){s.shared=!v; render()}}); return}
   if(e.target.id==='importFile'){
     const file=e.target.files[0]; if(!file) return;
     const r=new FileReader();
     r.onload=()=>{try{const j=JSON.parse(r.result); if(j.app!=='majlis'||!j.data||!Array.isArray(j.data.friends)) throw 0;
-      S=Object.assign(blank(),j.data); closeSheet(); render(); toast(t('importDone'))}catch(err){toast(t('importFail'))}};
+      S=Object.assign(blank(),j.data); closeSheet(); render(); toast(t('importDone')); syncStories()}catch(err){toast(t('importFail'))}};
     r.readAsText(file);
   }
 });
@@ -587,7 +650,13 @@ document.addEventListener('submit',e=>{
     const id='u'+uid(); S.custom.push({id,text:v}); S.filter='mine'; S.cur=id; animateCard=true; render(); toast(t('topicAdded'));
   } else if(f.id==='storyForm'){
     const v=document.getElementById('storyText').value.trim(); if(!v) return;
-    S.stories.push({id:uid(),text:v,shared:false,at:Date.now()}); render();
+    const st={id:uid(),text:v,shared:false,at:Date.now()}; S.stories.push(st); document.getElementById('storyText').value=''; render();
+    if(sb&&session) syncStories();
+  } else if(f.id==='signInForm'){
+    const fd=new FormData(f), btn=f.querySelector('button[type=submit]'); btn.disabled=true;
+    sb.auth.signInWithPassword({email:fd.get('email').trim(),password:fd.get('password')}).then(({error})=>{
+      btn.disabled=false; if(error) toast(t('signInFail'));
+    });
   } else if(f.id==='friendForm'){
     const fd=new FormData(f); const name=(fd.get('name')||'').trim(); if(!name) return;
     const data={name,interests:fd.get('interests').trim(),news:fd.get('news').trim(),followups:fd.get('followups').trim(),notes:fd.get('notes').trim()};
