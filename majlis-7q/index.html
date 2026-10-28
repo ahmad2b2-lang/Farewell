@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#2F5D50">
+<meta name="color-scheme" content="only light">
 <title>Majlis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,15 +16,7 @@
   --bg:#EEF1EA; --surface:#FBFCF9; --ink:#1D2621; --muted:#5E6B63; --line:#CDD5C8;
   --primary:#2F5D50; --primary-ink:#FFFFFF; --accent:#D99A1E; --danger:#A23B2A;
   --light:#C98A12; --deep:#2F5D50; --memories:#8A5A3C; --whatif:#3E6A8A; --life:#6A7A28; --mine:#9A4E6E;
-  color-scheme:light;
-}
-@media (prefers-color-scheme:dark){
-  :root{
-    --bg:#141C18; --surface:#1D2722; --ink:#E6ECE4; --muted:#9AA79F; --line:#33423A;
-    --primary:#7FB7A1; --primary-ink:#10201A; --accent:#E8B04A; --danger:#E07A66;
-    --light:#E8B04A; --deep:#7FB7A1; --memories:#C99372; --whatif:#86AFCF; --life:#B3C46A; --mine:#D58BAA;
-    color-scheme:dark;
-  }
+  color-scheme:only light;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -97,7 +90,6 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .friend{width:100%;text-align:start;display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;cursor:pointer}
 .avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:1.1rem;background:hsl(var(--h) 35% 85%);color:hsl(var(--h) 45% 25%);flex:none}
-@media (prefers-color-scheme:dark){.avatar{background:hsl(var(--h) 25% 28%);color:hsl(var(--h) 45% 86%)}}
 .f-main{min-width:0;display:flex;flex-direction:column}
 .f-main small{color:var(--muted);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-between{display:flex;justify-content:space-between;align-items:center;gap:12px}
