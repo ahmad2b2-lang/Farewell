@@ -112,7 +112,7 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .signin .field:last-of-type{margin-bottom:16px}
 
 /* games */
-.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;gap:4px}
 .seg button{flex:1;border:0;background:none;border-radius:10px;min-height:42px;cursor:pointer;font-size:.9rem;padding:4px 6px}
 .seg button[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink);font-weight:600}
 .gamecard{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px}
@@ -121,6 +121,44 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .wyr button[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--bg))}
 .wyr .or{text-align:center;color:var(--muted);font-size:.9rem}
 .big{font-size:1.4rem;line-height:1.35;font-weight:500;margin:0 0 18px}
+.gamecard h3:first-of-type{margin-top:16px}
+.best{margin:12px 0 0;color:var(--muted);font-size:.9rem;text-align:center}
+
+/* guess the word: full-screen play */
+#guess{position:fixed;inset:0;z-index:45;background:var(--bg);display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));touch-action:none;transition:background .15s}
+#guess[hidden]{display:none}
+#guess.ok{background:#CFE8D6}
+#guess.skip{background:#F6E2B8}
+.g-top{display:flex;align-items:center;gap:10px;font-weight:600}
+.g-top .stop{border:1px solid var(--line);background:var(--surface);border-radius:999px;min-height:40px;padding:0 14px;cursor:pointer;font-weight:500}
+.g-top .time{flex:1;text-align:center;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.g-top .time.low{color:var(--danger)}
+.g-top .score{min-width:64px;text-align:end;color:var(--primary)}
+.g-bar{height:6px;border-radius:3px;background:var(--line);margin:10px 0 0;overflow:hidden}
+.g-bar i{display:block;height:100%;background:var(--primary);transform-origin:left;transition:transform .25s linear}
+[dir="rtl"] .g-bar i{transform-origin:right}
+.g-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px 0;min-height:0}
+.g-cat{color:var(--muted);font-size:1rem;margin:0 0 6px}
+.g-word{font-size:clamp(2.4rem,13vmin,5.5rem);font-weight:700;line-height:1.15;margin:0;text-wrap:balance;max-width:100%;overflow-wrap:anywhere}
+.g-hint{margin:12px 0 0;color:var(--mine);font-weight:500}
+.g-count{font-size:clamp(5rem,30vmin,10rem);font-weight:700;color:var(--primary);margin:0;line-height:1}
+.g-ready{font-size:1.2rem;color:var(--muted);margin:10px 0 0}
+.g-actions{display:flex;gap:12px}
+.g-actions button{flex:1;min-height:88px;border-radius:20px;font-size:1.35rem;font-weight:700;cursor:pointer;border:2px solid var(--line);background:var(--surface);touch-action:manipulation}
+.g-actions .got{background:var(--primary);color:var(--primary-ink);border-color:transparent}
+.g-actions button:active{transform:scale(.97)}
+.g-end h2{margin:0;font-size:1.6rem}
+.g-end .num{font-size:4.5rem;font-weight:700;color:var(--primary);line-height:1.1;margin:6px 0 0}
+.g-end .note{color:var(--muted);margin:4px 0 12px}
+.g-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:520px;overflow:auto;max-height:38vh}
+.g-list li{border-radius:999px;padding:4px 12px;background:var(--surface);border:1px solid var(--line);font-size:.95rem}
+.g-list li.hit{border-color:var(--primary);color:var(--primary);font-weight:600}
+.g-list li.miss{color:var(--muted);text-decoration:line-through}
+@media (orientation:landscape) and (max-height:520px){
+  .g-actions button{min-height:64px}
+  .g-word{font-size:clamp(2.2rem,16vh,5rem)}
+  .g-list{max-height:24vh}
+}
 
 /* tab bar */
 .tabs{position:fixed;inset-inline:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
@@ -182,6 +220,12 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 <main id="main"></main>
 <nav class="tabs" aria-label="Sections"><div id="tabs"></div></nav>
 <div class="toast" id="toast" role="status" hidden></div>
+<div id="guess" role="dialog" aria-modal="true" aria-label="Guess the word" hidden>
+  <div class="g-top"><button type="button" class="stop" data-g="stop" id="gStop"></button><span class="time" id="gTime" aria-live="off"></span><span class="score" id="gScore"></span></div>
+  <div class="g-bar"><i id="gBar"></i></div>
+  <div class="g-stage" id="gStage" aria-live="polite"></div>
+  <div class="g-actions" id="gActions"></div>
+</div>
 <div class="update" id="updateBar" role="status" hidden><span id="updateText"></span><button type="button" id="updateBtn"></button></div>
 <div id="sheetRoot"></div>
 
@@ -257,6 +301,22 @@ const DEBATE=[
 
 const MOODS=['light','deep','memories','whatif','life'];
 
+/* Guess the word: English|Arabic pairs, separated by ; */
+const DECKS={
+ animals:{en:'Animals',ar:'حيوانات',w:'Camel|جمل;Falcon|صقر;Horse|حصان;Lion|أسد;Elephant|فيل;Giraffe|زرافة;Cat|قطة;Goat|ماعز;Sheep|خروف;Chicken|دجاجة;Cow|بقرة;Donkey|حمار;Rabbit|أرنب;Monkey|قرد;Snake|ثعبان;Scorpion|عقرب;Penguin|بطريق;Shark|سمك القرش;Dolphin|دلفين;Turtle|سلحفاة;Frog|ضفدع;Bee|نحلة;Ant|نملة;Butterfly|فراشة;Owl|بومة;Parrot|ببغاء;Crocodile|تمساح;Kangaroo|كنغر;Bear|دب;Zebra|حمار وحشي;Mosquito|بعوضة;Gazelle|غزال'},
+ food:{en:'Food & drink',ar:'أكل وشرب',w:'Kabsa|كبسة;Dates|تمر;Arabic coffee|قهوة عربية;Tea|شاي;Shawarma|شاورما;Pizza|بيتزا;Burger|برجر;Ice cream|آيس كريم;Popcorn|فشار;Falafel|فلافل;Hummus|حمص;Rice|رز;Bread|خبز;Cheese|جبن;Honey|عسل;Watermelon|بطيخ;Banana|موز;Mango|مانجو;Lemon|ليمون;Egg|بيضة;Soup|شوربة;Cake|كيكة;Chocolate|شوكولاتة;Jareesh|جريش;Kunafa|كنافة;Luqaimat|لقيمات;Mandi|مندي;Laban|لبن;Orange juice|عصير برتقال;Potato chips|شيبس;Sambousa|سمبوسة'},
+ jobs:{en:'Jobs',ar:'مهن',w:'Doctor|طبيب;Teacher|معلم;Pilot|طيار;Firefighter|رجل إطفاء;Police officer|شرطي;Farmer|مزارع;Chef|طباخ;Barber|حلاق;Mechanic|ميكانيكي;Carpenter|نجار;Plumber|سباك;Electrician|كهربائي;Dentist|طبيب أسنان;Nurse|ممرض;Engineer|مهندس;Judge|قاضي;Photographer|مصور;Journalist|صحفي;Tailor|خياط;Butcher|جزار;Baker|خباز;Lifeguard|منقذ سباحة;Astronaut|رائد فضاء;Taxi driver|سائق تاكسي;Cashier|كاشير;Footballer|لاعب كرة قدم;Programmer|مبرمج;Fisherman|صياد سمك;Security guard|حارس أمن;Shopkeeper|صاحب محل'},
+ home:{en:'Around the house',ar:'في البيت',w:'Fridge|ثلاجة;Washing machine|غسالة;TV|تلفزيون;Remote control|ريموت;Sofa|كنب;Pillow|مخدة;Blanket|بطانية;Mirror|مرآة;Toothbrush|فرشاة أسنان;Broom|مكنسة;Vacuum cleaner|مكنسة كهربائية;Kettle|غلاية;Microwave|مايكرويف;Air conditioner|مكيف;Fan|مروحة;Curtain|ستارة;Doorbell|جرس الباب;Key|مفتاح;Wall clock|ساعة حائط;Light bulb|لمبة;Carpet|سجادة;Scissors|مقص;Phone charger|شاحن جوال;Iron|مكواة;Oven|فرن;Spoon|ملعقة;Cup|كوب;Umbrella|مظلة;Alarm clock|منبه;Bathtub|بانيو'},
+ places:{en:'Places',ar:'أماكن',w:'Riyadh|الرياض;Jeddah|جدة;Abha|أبها;AlUla|العلا;Dubai|دبي;Cairo|القاهرة;London|لندن;Paris|باريس;Tokyo|طوكيو;New York|نيويورك;China|الصين;Japan|اليابان;India|الهند;Turkey|تركيا;Brazil|البرازيل;Airport|مطار;Hospital|مستشفى;School|مدرسة;Beach|شاطئ;Desert|صحراء;Mall|مول;Zoo|حديقة حيوان;Stadium|ملعب;Library|مكتبة;Gas station|محطة بنزين;Bank|بنك;Farm|مزرعة;Mountain|جبل;The Pyramids|الأهرامات;Eiffel Tower|برج إيفل'},
+ act:{en:'Act it out',ar:'مثّلها',act:true,w:'Swimming|السباحة;Sleeping|النوم;Driving a car|قيادة السيارة;Cooking|الطبخ;Brushing teeth|تفريش الأسنان;Taking a selfie|تصوير سيلفي;Playing football|لعب الكورة;Fishing|صيد السمك;Climbing|التسلق;Sneezing|العطاس;Laughing|الضحك;Typing|الكتابة على الكيبورد;Reading a book|قراءة كتاب;Painting|الرسم;Riding a camel|ركوب الجمل;Pouring coffee|صب القهوة;Flying a kite|لعب الطائرة الورقية;Boxing|الملاكمة;Crying|البكاء;Yawning|التثاؤب;Shaving|حلاقة الذقن;Ironing clothes|كي الملابس;Washing dishes|غسل الصحون;Rowing a boat|التجديف;Knocking on a door|طرق الباب;Carrying a heavy box|حمل صندوق ثقيل;Waiting in line|الانتظار في الطابور;Changing a tyre|تغيير كفر السيارة;Blowing up a balloon|نفخ بالونة;Walking a dog|تمشية كلب'},
+ sports:{en:'Sports & hobbies',ar:'رياضات وهوايات',w:'Football|كرة القدم;Basketball|كرة السلة;Volleyball|كرة الطائرة;Tennis|تنس;Padel|بادل;Golf|قولف;Bowling|بولينغ;Chess|شطرنج;Cycling|ركوب الدراجة;Running|الجري;Camping|الكشتة;Falconry|الصيد بالصقور;Horse racing|سباق الخيل;Camel racing|سباق الهجن;Diving|الغوص;Karate|كاراتيه;Wrestling|المصارعة;Archery|الرماية بالسهام;Baloot|البلوت;Carrom|الكيرم;Video games|ألعاب الفيديو;Gardening|الزراعة المنزلية;Photography|التصوير;Jigsaw puzzle|البازل;Stargazing|مراقبة النجوم;Hiking|المشي في الجبال;Sandboarding|التزلج على الرمال;Kayaking|الكاياك;Skateboarding|لوح التزلج;Ping pong|تنس الطاولة'},
+ heritage:{en:'Heritage & majlis',ar:'تراث ومجلس',w:'Dallah|دلة;Finjan|فنجال;Bisht|بشت;Shemagh|شماغ;Iqal|عقال;Bukhoor|بخور;Oud oil|دهن العود;Tent|خيمة;Campfire|شبّة النار;Ardah dance|العرضة;Sword|سيف;Palm tree|نخلة;Well|بئر;Sadu weaving|السدو;Mud house|بيت طين;Camel milk|حليب الناقة;Prayer beads|مسبحة;Armrest cushion|مركى;Thobe|ثوب;Henna|حناء;Eid|العيد;Bedouin|بدوي;Caravan|قافلة;Sand dunes|كثبان رملية;Oasis|واحة;Falcon hood|برقع الصقر;Saluki|سلوقي;Rababa|ربابة;Lantern|فانوس;Coffee roasting pan|محماس'},
+ farm:{en:'Farm & tools',ar:'مزرعة وعدّة',w:'Tractor|تراكتور;Shovel|مسحاة;Hammer|مطرقة;Screwdriver|مفك;Wrench|مفتاح ربط;Saw|منشار;Chainsaw|منشار آلي;Drill|دريل;Wheelbarrow|عربية يد;Garden hose|ليّ ماء;Sprinkler|رشاش ماء;Water pump|مضخة ماء;Seeds|بذور;Fertilizer|سماد;Greenhouse|بيت محمي;Scarecrow|فزاعة;Pickaxe|معول;Axe|فأس;Pliers|كماشة;Tape measure|متر قياس;Nails|مسامير;Glue|غراء;Generator|مولد كهرباء;Drip irrigation|ري بالتنقيط;Pruning shears|مقص تقليم;Work gloves|قفازات عمل;Padlock|قفل;Rope|حبل;Flashlight|كشاف;Beehive|خلية نحل'}
+};
+const DECK_IDS=Object.keys(DECKS);
+function deckWords(cat){return DECKS[cat].w.split(';').map((x,i)=>{const [en,ar]=x.split('|');return {id:cat+':'+i,cat,en,ar,act:!!DECKS[cat].act}})}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
 const T={
 en:{
  app:'Majlis',tagline:'Good talk, ready when you are',topics:'Topics',stories:'Stories',games:'Games',
@@ -270,7 +330,11 @@ en:{
  
  
  storiesIntro:'Things from your week you want to tell your friends.',storyPh:'Something funny, a lesson, good news…',addStory:'Add story',shared:'Shared',storiesEmpty:'No stories yet. Write one down when something happens, so you remember it at the next meetup.',delete:'Delete',
- wyr:'Would you rather',debate:'Quick debate',twoTruths:'Two truths, one lie',
+ wyr:'Would you rather',debate:'Quick debate',twoTruths:'Two truths, one lie',guess:'Guess the word',
+ guessRules:'One player holds the phone on their forehead so everyone else can see the word. The others give clues without saying the word, and the player guesses before time runs out. Tap Got it or Pass, or let a friend tap.',
+ category:'Category',time:'Time',sec:'sec',mix:'Mix of everything',start:'Start',gotIt:'Got it',pass:'Pass',stop:'Stop',
+ getReady:'Phone on your forehead!',actIt:'Act it out, no talking',timesUp:'Time’s up!',correct:'correct',bestScore:'Best in this category',newBest:'New best!',
+ nextPlayer:'Pass the phone to the next player.',playAgain:'Play again',done:'Done',
  twoTruthsRules:'Everyone says three things about themselves: two true, one made up. The others guess which one is the lie. The most surprising truth wins the round.',
  debateRules:'Pick sides, even if you don’t agree with yours. One minute each.',next:'Next',or:'or',
  backup:'Backup',exportData:'Save a backup file',importData:'Load a backup file',importDone:'Backup loaded',importFail:'That file is not a Majlis backup.',
@@ -293,7 +357,11 @@ ar:{
  
  
  storiesIntro:'أشياء من أسبوعك تحب تحكيها لأصدقائك.',storyPh:'موقف طريف، درس، خبر حلو…',addStory:'إضافة حكاية',shared:'حكيتها',storiesEmpty:'لا توجد حكايات بعد. اكتبها حين تحدث حتى تتذكرها في اللقاء القادم.',delete:'حذف',
- wyr:'لو خيّروك',debate:'نقاش سريع',twoTruths:'حقيقتان وكذبة',
+ wyr:'لو خيّروك',debate:'نقاش سريع',twoTruths:'حقيقتان وكذبة',guess:'خمّن الكلمة',
+ guessRules:'لاعب واحد يضع الجوال على جبهته بحيث يرى الباقون الكلمة. يعطونه تلميحات دون أن يقولوا الكلمة، وهو يخمّن قبل أن ينتهي الوقت. اضغط «عرفتها» أو «تخطَّ»، أو دع صديقاً يضغط عنك.',
+ category:'الفئة',time:'الوقت',sec:'ثانية',mix:'منوعات',start:'ابدأ',gotIt:'عرفتها',pass:'تخطَّ',stop:'إيقاف',
+ getReady:'الجوال على جبهتك!',actIt:'مثّلها بدون كلام',timesUp:'انتهى الوقت!',correct:'صحيحة',bestScore:'أفضل نتيجة في هذه الفئة',newBest:'رقم قياسي جديد!',
+ nextPlayer:'أعطِ الجوال للاعب التالي.',playAgain:'العب مرة أخرى',done:'تم',
  twoTruthsRules:'كل واحد يقول ثلاث معلومات عن نفسه: اثنتان صحيحتان وواحدة مختلقة. والبقية يخمنون الكذبة. أغرب حقيقة تفوز بالجولة.',
  debateRules:'اختاروا الجهتين حتى لو لم تقتنع بجهتك. دقيقة لكل واحد.',next:'التالي',or:'أو',
  backup:'نسخة احتياطية',exportData:'حفظ ملف نسخة احتياطية',importData:'تحميل ملف نسخة احتياطية',importDone:'تم تحميل النسخة',importFail:'هذا الملف ليس نسخة من مجلس.',
@@ -315,7 +383,7 @@ const ICON={
 };
 
 /* ---------- state ---------- */
-function blank(){return {lang:'en',used:{},saved:[],custom:[],stories:[],cur:null,filter:'all',hideUsed:true,tab:'topics',game:{mode:'wyr',i:0,pick:null}}}
+function blank(){return {lang:'en',used:{},saved:[],custom:[],stories:[],cur:null,filter:'all',hideUsed:true,tab:'topics',game:{mode:'guess',i:0,pick:null},guess:{cat:'mix',secs:60,best:{},seen:[]}}}
 let S=blank();
 /* PIN lock: the PIN is never stored. Only a PBKDF2 check value is here; the same derivation gives the key that encrypts this phone's data. */
 const KEY_ENC='majlis.enc.v1', KEY_LANG='majlis.lang';
@@ -482,9 +550,20 @@ function renderStories(){
 /* ---------- games ---------- */
 function renderGames(){
   const g=S.game;
-  let h=`<h2 class="h">${esc(t('games'))}</h2><div class="seg" role="group">`+['wyr','debate','twoTruths'].map(m=>
+  let h=`<h2 class="h">${esc(t('games'))}</h2><div class="seg" role="group">`+['guess','wyr','debate','twoTruths'].map(m=>
     `<button type="button" data-mode="${m}" aria-pressed="${g.mode===m}">${esc(t(m))}</button>`).join('')+'</div><div class="gamecard">';
-  if(g.mode==='wyr'){
+  if(g.mode==='guess'){
+    const G=S.guess, cats=['mix',...DECK_IDS];
+    if(!cats.includes(G.cat)) G.cat='mix';
+    const best=G.best[G.cat];
+    h+=`<p class="muted" style="margin:0">${esc(t('guessRules'))}</p>
+      <h3>${esc(t('category'))}</h3><div class="chips wrap" role="group">`+cats.map(c=>
+      `<button class="chip" type="button" data-gcat="${c}" aria-pressed="${G.cat===c}">${esc(c==='mix'?t('mix'):DECKS[c][S.lang])}</button>`).join('')+`</div>
+      <h3>${esc(t('time'))}</h3><div class="chips wrap" role="group">`+[60,90,120].map(n=>
+      `<button class="chip" type="button" data-gsecs="${n}" aria-pressed="${G.secs===n}">${n} ${esc(t('sec'))}</button>`).join('')+`</div>
+      <button class="btn primary" type="button" data-act="guessStart" style="width:100%;margin-top:20px">${esc(t('start'))}</button>
+      ${best?`<p class="best">${esc(t('bestScore'))}: ${best}</p>`:''}`;
+  } else if(g.mode==='wyr'){
     const w=WYR[g.i%WYR.length][S.lang];
     h+=`<p class="muted" style="margin:0 0 12px">${esc(t('wyr'))}…</p><div class="wyr">
       <button type="button" data-wyr="0" aria-pressed="${g.pick===0}">${esc(w[0])}</button>
@@ -547,7 +626,7 @@ document.getElementById('langBtn').addEventListener('click',()=>{S.lang=S.lang==
 document.getElementById('backupBtn').addEventListener('click',openBackup);
 
 document.addEventListener('click',e=>{
-  const el=e.target.closest('[data-act],[data-filter],[data-delstory],[data-mode],[data-wyr]');
+  const el=e.target.closest('[data-act],[data-filter],[data-delstory],[data-mode],[data-wyr],[data-gcat],[data-gsecs]');
   if(!el) return;
   const d=el.dataset;
   if(d.act==='closeSheet'){ if(el.classList.contains('sheet-wrap')&&e.target!==el) return; closeSheet(); return }
@@ -555,6 +634,8 @@ document.addEventListener('click',e=>{
   if(d.delstory){const st=S.stories.find(s=>s.id===d.delstory); if(!st||!confirm(t('confirmDelStory'))) return;
     remoteStory('delete',st).then(ok=>{if(ok){S.stories=S.stories.filter(s=>s!==st); render()}}); return}
   if(d.mode){S.game={mode:d.mode,i:Math.floor(Math.random()*(d.mode==='wyr'?WYR.length:DEBATE.length)),pick:null}; render(); return}
+  if(d.gcat){S.guess.cat=d.gcat; render(); return}
+  if(d.gsecs){S.guess.secs=+d.gsecs; render(); return}
   if(d.wyr){S.game.pick=S.game.pick===+d.wyr?null:+d.wyr; render(); return}
   switch(d.act){
     case 'next': nextTopic(); render(); break;
@@ -564,6 +645,7 @@ document.addEventListener('click',e=>{
     case 'delTopic': {const id=S.cur; S.custom=S.custom.filter(c=>c.id!==id); S.saved=S.saved.filter(x=>x!==id); delete S.used[id]; S.cur=null; render(); break}
     case 'resync': syncStories(); break;
     case 'signOut': if(sb) sb.auth.signOut(); break;
+    case 'guessStart': guessStart(); break;
     case 'nextGame': {const n=S.game.mode==='wyr'?WYR.length:DEBATE.length; S.game.i=(S.game.i+1)%n; S.game.pick=null; render(); break}
     case 'export': {
       const blob=new Blob([JSON.stringify({app:'majlis',v:1,data:S},null,2)],{type:'application/json'});
@@ -605,6 +687,104 @@ document.addEventListener('submit',e=>{
 });
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.sheet-wrap')) closeSheet()});
+
+/* ---------- guess the word: play ---------- */
+let GP=null, audio=null, wake=null;
+function tone(freq,dur,vol){
+  try{
+    audio=audio||new (window.AudioContext||window.webkitAudioContext)();
+    if(audio.state==='suspended') audio.resume();
+    const o=audio.createOscillator(), g=audio.createGain(), n=audio.currentTime;
+    o.frequency.value=freq; g.gain.setValueAtTime(vol||.18,n); g.gain.exponentialRampToValueAtTime(.0001,n+dur);
+    o.connect(g); g.connect(audio.destination); o.start(n); o.stop(n+dur);
+  }catch(e){}
+}
+const buzz=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
+const gEl=id=>document.getElementById(id);
+function guessStart(){
+  const G=S.guess, pool=G.cat==='mix'?DECK_IDS.flatMap(deckWords):deckWords(G.cat);
+  const seen=new Set(G.seen);
+  let fresh=pool.filter(w=>!seen.has(w.id));
+  if(fresh.length<15){const ids=new Set(pool.map(w=>w.id)); G.seen=G.seen.filter(id=>!ids.has(id)); fresh=pool}
+  GP={words:shuffle(fresh.slice()),i:-1,results:[],score:0,secs:G.secs,cat:G.cat,state:'count',timer:null,endAt:0,lastBeep:0};
+  tone(660,.05,.001);                                   // wake the sound up during the tap
+  try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(l=>wake=l).catch(()=>{})}catch(e){}
+  gEl('gStop').textContent=t('stop'); gEl('guess').setAttribute('aria-label',t('guess'));
+  gEl('guess').hidden=false; document.body.style.overflow='hidden';
+  gEl('gTime').textContent=''; gEl('gScore').textContent=''; gEl('gBar').style.transform='scaleX(1)';
+  gEl('gActions').innerHTML='';
+  let n=3;
+  const show=()=>{gEl('gStage').innerHTML=`<p class="g-count">${n}</p><p class="g-ready">${esc(t('getReady'))}</p>`; tone(520,.12)};
+  show();
+  GP.timer=setInterval(()=>{ if(!GP) return; n--; if(n>0){show()} else {clearInterval(GP.timer); guessBegin()} },1000);
+}
+function guessBegin(){
+  GP.state='play'; GP.endAt=Date.now()+GP.secs*1000;
+  tone(880,.18);
+  gEl('gActions').innerHTML=`<button type="button" data-g="pass">${esc(t('pass'))}</button><button type="button" class="got" data-g="got">${esc(t('gotIt'))}</button>`;
+  guessNext(); guessTick();
+  GP.timer=setInterval(guessTick,200);
+}
+function guessNext(){
+  GP.i++;
+  if(GP.i>=GP.words.length){GP.words=GP.words.concat(shuffle(GP.words.slice(0,GP.i)))}  // ran out: reuse
+  const w=GP.words[GP.i];
+  if(!S.guess.seen.includes(w.id)){S.guess.seen.push(w.id); if(S.guess.seen.length>400) S.guess.seen.shift()}
+  const cat=DECKS[w.cat][S.lang];
+  gEl('gStage').innerHTML=`${w.act?'':`<p class="g-cat">${esc(cat)}</p>`}<p class="g-word" dir="auto">${esc(w[S.lang])}</p>${w.act?`<p class="g-hint">${esc(t('actIt'))}</p>`:''}`;
+  gEl('gScore').textContent='✓ '+GP.score;
+}
+function guessTick(){
+  if(!GP||GP.state!=='play') return;
+  const ms=Math.max(0,GP.endAt-Date.now()), left=Math.ceil(ms/1000);
+  gEl('gTime').textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
+  gEl('gTime').classList.toggle('low',left<=10);
+  gEl('gBar').style.transform=`scaleX(${ms/(GP.secs*1000)})`;
+  if(left<=5&&left>0&&left!==GP.lastBeep){GP.lastBeep=left; tone(740,.08,.12)}
+  if(ms<=0) guessEnd();
+}
+function guessAnswer(ok){
+  if(!GP||GP.state!=='play') return;
+  const w=GP.words[GP.i]; GP.results.push({w,ok}); if(ok) GP.score++;
+  const g=gEl('guess'); g.classList.remove('ok','skip'); void g.offsetWidth; g.classList.add(ok?'ok':'skip');
+  setTimeout(()=>g.classList.remove('ok','skip'),220);
+  if(ok){tone(988,.12); setTimeout(()=>tone(1319,.16),90); buzz(30)} else {tone(300,.15); buzz([20,40,20])}
+  guessNext();
+}
+function guessEnd(){
+  clearInterval(GP.timer); GP.state='end';
+  const last=GP.words[GP.i]; if(last&&!GP.results.some(r=>r.w===last)) GP.results.push({w:last,ok:false});
+  tone(220,.6,.22); buzz(400);
+  const prev=S.guess.best[GP.cat]||0, isBest=GP.score>prev&&GP.score>0;
+  if(isBest) S.guess.best[GP.cat]=GP.score;
+  save();
+  gEl('gTime').textContent='0:00'; gEl('gBar').style.transform='scaleX(0)';
+  gEl('gStage').innerHTML=`<div class="g-end"><h2>${esc(t('timesUp'))}</h2><p class="num">${GP.score}</p>
+    <p class="note">${esc(isBest?t('newBest'):t('correct'))} · ${esc(t('nextPlayer'))}</p>
+    <ul class="g-list">${GP.results.map(r=>`<li class="${r.ok?'hit':'miss'}" dir="auto">${esc(r.w[S.lang])}</li>`).join('')}</ul></div>`;
+  gEl('gActions').innerHTML=`<button type="button" data-g="stop">${esc(t('done'))}</button><button type="button" class="got" data-g="again">${esc(t('playAgain'))}</button>`;
+}
+function guessClose(){
+  if(GP){clearInterval(GP.timer); if(GP.results.length) save()}
+  GP=null; gEl('guess').hidden=true; document.body.style.overflow='';
+  try{wake&&wake.release()}catch(e){} wake=null;
+  render();
+}
+gEl('guess').addEventListener('click',e=>{
+  const b=e.target.closest('[data-g]'); if(!b) return;
+  const k=b.dataset.g;
+  if(k==='got') guessAnswer(true);
+  else if(k==='pass') guessAnswer(false);
+  else if(k==='again'){clearInterval(GP&&GP.timer); guessStart()}
+  else if(k==='stop') guessClose();
+});
+document.addEventListener('keydown',e=>{
+  if(!GP) return;
+  if(e.key==='Escape') guessClose();
+  else if(GP.state==='play'&&e.key==='Enter'){e.preventDefault(); guessAnswer(true)}
+  else if(GP.state==='play'&&e.key===' '){e.preventDefault(); guessAnswer(false)}
+});
+document.addEventListener('visibilitychange',()=>{ if(document.hidden&&GP&&GP.state!=='end'){ guessClose() } });
 
 /* swipe the card */
 let sx=null, sy=null;
