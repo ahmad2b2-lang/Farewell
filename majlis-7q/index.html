@@ -153,6 +153,10 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 /* PIN lock */
 #lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom))}
 #lock[hidden]{display:none}
+.update{position:fixed;inset-inline:16px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:40;max-width:528px;margin:0 auto;background:var(--primary);color:var(--primary-ink);border-radius:16px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px}
+.update[hidden]{display:none}
+.update span{flex:1}
+.update button{border:0;border-radius:12px;min-height:40px;padding:0 16px;background:var(--primary-ink);color:var(--primary);font-weight:600;cursor:pointer}
 #lock h1{margin:0;font-size:2rem;font-weight:700;color:var(--primary)}
 #lock p{margin:6px 0 0;color:var(--muted)}
 .pin-dots{display:flex;gap:12px;height:18px;margin:28px 0 8px;align-items:center}
@@ -188,6 +192,7 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 <main id="main"></main>
 <nav class="tabs" aria-label="Sections"><div id="tabs"></div></nav>
 <div class="toast" id="toast" role="status" hidden></div>
+<div class="update" id="updateBar" role="status" hidden><span id="updateText"></span><button type="button" id="updateBtn"></button></div>
 <div id="sheetRoot"></div>
 
 <script>
@@ -288,7 +293,7 @@ en:{
  signInFail:'Sign-in failed. Check the email and password.',signedInAs:'Signed in as',syncFail:'Couldn’t reach Supabase. Check your connection.',retry:'Try again',loading:'Loading…',
  noSb:'The sign-in couldn’t load. Check your connection and reload the page.',notUploaded:'Only on this phone, uploads when you’re signed in and online',confirmDelStory:'Delete this story?',
  langBtn:'العربية',
- enterPin:'Enter your PIN',wrongPin:'Wrong PIN. Try again.',waitPin:'Too many tries. Wait 30 seconds.',checking:'Checking…',unlockBtn:'Unlock',delDigit:'Delete',brokenData:'Couldn’t open the saved notes on this phone.'
+ enterPin:'Enter your PIN',wrongPin:'Wrong PIN. Try again.',waitPin:'Too many tries. Wait 30 seconds.',checking:'Checking…',unlockBtn:'Unlock',delDigit:'Delete',brokenData:'Couldn’t open the saved notes on this phone.',newVersion:'A new version of the app is ready.',reloadNow:'Update'
 },
 ar:{
  app:'مجلس',tagline:'سوالف جاهزة وقت ما تحتاجها',topics:'مواضيع',friends:'الأصدقاء',meetup:'اللقاء',stories:'حكايات',games:'ألعاب',
@@ -315,7 +320,7 @@ ar:{
  signInFail:'فشل تسجيل الدخول. تأكد من البريد وكلمة المرور.',signedInAs:'مسجّل باسم',syncFail:'تعذّر الاتصال بـ Supabase. تأكد من الاتصال.',retry:'حاول مرة أخرى',loading:'جارٍ التحميل…',
  noSb:'تعذّر تحميل تسجيل الدخول. تأكد من الاتصال وأعد تحميل الصفحة.',notUploaded:'على هذا الجوال فقط، تُرفع عند تسجيل الدخول والاتصال',confirmDelStory:'حذف هذه الحكاية؟',
  langBtn:'English',
- enterPin:'أدخل الرمز السري',wrongPin:'الرمز غير صحيح. حاول مرة أخرى.',waitPin:'محاولات كثيرة. انتظر 30 ثانية.',checking:'جارٍ التحقق…',unlockBtn:'فتح',delDigit:'حذف',brokenData:'تعذّر فتح الملاحظات المحفوظة على هذا الجوال.'
+ enterPin:'أدخل الرمز السري',wrongPin:'الرمز غير صحيح. حاول مرة أخرى.',waitPin:'محاولات كثيرة. انتظر 30 ثانية.',checking:'جارٍ التحقق…',unlockBtn:'فتح',delDigit:'حذف',brokenData:'تعذّر فتح الملاحظات المحفوظة على هذا الجوال.',newVersion:'يوجد إصدار جديد من التطبيق.',reloadNow:'تحديث'
 }};
 
 const ICON={
@@ -791,8 +796,35 @@ document.addEventListener('touchend',e=>{
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden) hiddenAt=Date.now();
     else if(cryptoKey&&hiddenAt&&Date.now()-hiddenAt>5*60*1000) location.reload();
+    else if(hiddenAt&&Date.now()-hiddenAt>60*1000) checkForUpdate();
   });
+  checkForUpdate();
 })();
+
+/* ---------- always run the newest version ----------
+   On open (and when coming back to the app) download the page fresh from GitHub and compare it
+   with the copy the browser has. If they differ, refresh the browser's copy and reload. */
+async function checkForUpdate(){
+  if(!/^https?:/.test(location.protocol)) return;
+  try{
+    const page=location.pathname;
+    const fresh=await fetch(page+'?u='+Date.now(),{cache:'no-store'});
+    if(!fresh.ok) return;
+    const freshText=await fresh.text();
+    const cached=await fetch(page,{cache:'force-cache'});
+    if(!cached.ok||freshText===await cached.text()) return;
+    await fetch(page,{cache:'reload'});          // replace the browser's stored copy with the new one
+    let last=0; try{last=+sessionStorage.getItem('majlis.updated')||0}catch(e){}
+    if(Date.now()-last<30000) return;           // just reloaded for an update: don't loop
+    try{sessionStorage.setItem('majlis.updated',String(Date.now()))}catch(e){}
+    if(!cryptoKey){location.reload(); return}   // still on the PIN screen: nothing to lose, reload now
+    const bar=document.getElementById('updateBar');
+    document.getElementById('updateText').textContent=t('newVersion');
+    const btn=document.getElementById('updateBtn'); btn.textContent=t('reloadNow');
+    btn.onclick=()=>{save(); saving.then(()=>location.reload())};
+    bar.hidden=false;
+  }catch(e){}
+}
 </script>
 </body>
 </html>
