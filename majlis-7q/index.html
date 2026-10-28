@@ -140,6 +140,23 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:.92rem;z-index:30;max-width:90vw;text-align:center}
 .toast[hidden]{display:none}
 
+/* PIN lock */
+#lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px calc(24px + env(safe-area-inset-bottom))}
+#lock[hidden]{display:none}
+#lock h1{margin:0;font-size:2rem;font-weight:700;color:var(--primary)}
+#lock p{margin:6px 0 0;color:var(--muted)}
+.pin-dots{display:flex;gap:12px;height:18px;margin:28px 0 8px;align-items:center}
+.pin-dots span{width:14px;height:14px;border-radius:50%;border:2px solid var(--primary)}
+.pin-dots span.on{background:var(--primary)}
+.pin-dots.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+#lock .pin-msg{min-height:1.5em;color:var(--danger);font-size:.92rem;margin:0 0 12px}
+.keypad{display:grid;grid-template-columns:repeat(3,76px);gap:14px;direction:ltr}
+.keypad button{height:76px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.6rem;font-weight:500;cursor:pointer;display:grid;place-items:center}
+.keypad button.go{background:var(--primary);color:var(--primary-ink);border-color:transparent;font-size:1rem;font-weight:600}
+.keypad button:disabled{opacity:.5}
+@media (prefers-reduced-motion:reduce){.pin-dots.shake{animation:none}}
+
 @media (prefers-reduced-motion:reduce){.card.enter{animation:none}}
 </style>
 </head>
@@ -149,6 +166,13 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
   <button class="hbtn" id="langBtn" type="button"></button>
   <button class="hbtn round" id="backupBtn" type="button"></button>
 </header>
+<div id="lock" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+  <h1 id="lockTitle">Majlis</h1>
+  <p id="lockPrompt">Enter your PIN</p>
+  <div class="pin-dots" id="pinDots" aria-hidden="true"></div>
+  <p class="pin-msg" id="pinMsg" role="alert"></p>
+  <div class="keypad" id="keypad"></div>
+</div>
 <main id="main"></main>
 <nav class="tabs" aria-label="Sections"><div id="tabs"></div></nav>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -251,7 +275,8 @@ en:{
  signInTitle:'Sign in to keep your stories in Supabase',signInNote:'Use the same admin account as your products app.',email:'Email',password:'Password',signIn:'Sign in',signOut:'Sign out',
  signInFail:'Sign-in failed. Check the email and password.',signedInAs:'Signed in as',syncFail:'Couldn’t reach Supabase. Check your connection.',retry:'Try again',loading:'Loading…',
  noSb:'The sign-in couldn’t load. Check your connection and reload the page.',notUploaded:'Only on this phone, uploads when you’re signed in and online',confirmDelStory:'Delete this story?',
- langBtn:'العربية'
+ langBtn:'العربية',
+ enterPin:'Enter your PIN',wrongPin:'Wrong PIN. Try again.',waitPin:'Too many tries. Wait 30 seconds.',checking:'Checking…',unlockBtn:'Unlock',delDigit:'Delete',brokenData:'Couldn’t open the saved notes on this phone.'
 },
 ar:{
  app:'مجلس',tagline:'سوالف جاهزة وقت ما تحتاجها',topics:'مواضيع',friends:'الأصدقاء',meetup:'اللقاء',stories:'حكايات',games:'ألعاب',
@@ -277,7 +302,8 @@ ar:{
  signInTitle:'سجّل الدخول لحفظ حكاياتك في Supabase',signInNote:'استخدم حساب المسؤول نفسه الذي في تطبيق المنتجات.',email:'البريد الإلكتروني',password:'كلمة المرور',signIn:'تسجيل الدخول',signOut:'تسجيل الخروج',
  signInFail:'فشل تسجيل الدخول. تأكد من البريد وكلمة المرور.',signedInAs:'مسجّل باسم',syncFail:'تعذّر الاتصال بـ Supabase. تأكد من الاتصال.',retry:'حاول مرة أخرى',loading:'جارٍ التحميل…',
  noSb:'تعذّر تحميل تسجيل الدخول. تأكد من الاتصال وأعد تحميل الصفحة.',notUploaded:'على هذا الجوال فقط، تُرفع عند تسجيل الدخول والاتصال',confirmDelStory:'حذف هذه الحكاية؟',
- langBtn:'English'
+ langBtn:'English',
+ enterPin:'أدخل الرمز السري',wrongPin:'الرمز غير صحيح. حاول مرة أخرى.',waitPin:'محاولات كثيرة. انتظر 30 ثانية.',checking:'جارٍ التحقق…',unlockBtn:'فتح',delDigit:'حذف',brokenData:'تعذّر فتح الملاحظات المحفوظة على هذا الجوال.'
 }};
 
 const ICON={
@@ -294,8 +320,42 @@ const ICON={
 /* ---------- state ---------- */
 function blank(){return {lang:'en',used:{},saved:[],custom:[],friends:[],stories:[],cur:null,filter:'all',hideUsed:true,tab:'topics',plan:{friendIds:[]},game:{mode:'wyr',i:0,pick:null}}}
 let S=blank();
-try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(blank(),JSON.parse(raw));}catch(e){}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+/* PIN lock: the PIN is never stored. Only a PBKDF2 check value is here; the same derivation gives the key that encrypts this phone's data. */
+const KEY_ENC='majlis.enc.v1', KEY_LANG='majlis.lang';
+const PIN_SALT='12e0904f51d3dd269ea56dd1e44224df', PIN_ITER=400000, PIN_CHECK='a1e4ced0746444d21775fb3ebf51264076c3e5dea373e7d86aabd6933b88f07e';
+let cryptoKey=null, saving=Promise.resolve();
+const hex=b=>[...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+const unhex=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
+const b64=b=>btoa(String.fromCharCode(...b));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+function save(){
+  try{localStorage.setItem(KEY_LANG,S.lang)}catch(e){}
+  if(!cryptoKey) return;
+  const data=new TextEncoder().encode(JSON.stringify(S));
+  saving=saving.then(async()=>{
+    const iv=crypto.getRandomValues(new Uint8Array(12));
+    const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},cryptoKey,data));
+    localStorage.setItem(KEY_ENC,JSON.stringify({iv:b64(iv),ct:b64(ct)}));
+  }).catch(()=>{});
+}
+async function unlock(pin){
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveBits']);
+  const bits=new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(PIN_SALT),iterations:PIN_ITER},base,512));
+  if(hex(bits.slice(0,32))!==PIN_CHECK) return 'wrong';
+  const key=await crypto.subtle.importKey('raw',bits.slice(32),'AES-GCM',false,['encrypt','decrypt']);
+  const enc=localStorage.getItem(KEY_ENC);
+  if(enc){
+    try{const o=JSON.parse(enc); const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(o.iv)},key,unb64(o.ct));
+      S=Object.assign(blank(),JSON.parse(new TextDecoder().decode(pt)));}
+    catch(e){return 'broken'}
+  } else {
+    const old=localStorage.getItem(KEY);   // notes saved before the PIN existed: move them into the locked store
+    if(old){try{S=Object.assign(blank(),JSON.parse(old))}catch(e){}}
+  }
+  cryptoKey=key; save(); await saving;
+  if(localStorage.getItem(KEY_ENC)) localStorage.removeItem(KEY);
+  return 'ok';
+}
 
 const t=k=>(T[S.lang]&&T[S.lang][k])||T.en[k]||k;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -340,7 +400,8 @@ async function remoteStory(op,st,fields){
   if(error){toast(t('syncFail')); return false}
   return true;
 }
-if(sb){
+function startAuth(){
+  if(!sb) return;
   sb.auth.onAuthStateChange((ev,s)=>{
     session=s; authReady=true;
     if(ev==='SIGNED_OUT'){S.stories=S.stories.filter(x=>!x.remote); save()}
@@ -669,7 +730,51 @@ document.addEventListener('touchend',e=>{
   if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){nextTopic(); render()}
 });
 
-render();
+/* ---------- lock screen ---------- */
+(function(){
+  try{const l=localStorage.getItem(KEY_LANG); if(l==='ar'||l==='en') S.lang=l}catch(e){}
+  document.documentElement.lang=S.lang; document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';
+  const lock=document.getElementById('lock'), dots=document.getElementById('pinDots'), msg=document.getElementById('pinMsg'), pad=document.getElementById('keypad');
+  document.getElementById('lockTitle').textContent=t('app');
+  document.getElementById('lockPrompt').textContent=t('enterPin');
+  let pin='', busy=false, fails=0, waitUntil=0;
+  pad.innerHTML=['1','2','3','4','5','6','7','8','9','del','0','go'].map(k=>
+    k==='del'?`<button type="button" data-k="del" aria-label="${esc(t('delDigit'))}">⌫</button>`:
+    k==='go'?`<button type="button" class="go" data-k="go">${esc(t('unlockBtn'))}</button>`:
+    `<button type="button" data-k="${k}">${k}</button>`).join('');
+  const drawDots=()=>{dots.innerHTML=[...Array(Math.max(pin.length,4))].map((_,i)=>`<span class="${i<pin.length?'on':''}"></span>`).join('')};
+  drawDots();
+  async function go(){
+    if(busy||!pin) return;
+    if(Date.now()<waitUntil){msg.textContent=t('waitPin'); return}
+    busy=true; msg.textContent=t('checking'); msg.style.color='var(--muted)';
+    pad.querySelectorAll('button').forEach(b=>b.disabled=true);
+    let r='wrong'; try{r=await unlock(pin)}catch(e){}
+    pad.querySelectorAll('button').forEach(b=>b.disabled=false); busy=false; msg.style.color='';
+    if(r==='ok'){lock.hidden=true; pin=''; msg.textContent=''; render(); startAuth(); return}
+    if(r==='broken'){msg.textContent=t('brokenData'); return}
+    fails++; pin=''; drawDots();
+    dots.classList.remove('shake'); void dots.offsetWidth; dots.classList.add('shake');
+    if(fails>=5){waitUntil=Date.now()+30000; fails=0; msg.textContent=t('waitPin')} else msg.textContent=t('wrongPin');
+  }
+  function press(k){
+    if(busy) return;
+    if(k==='go') return go();
+    if(k==='del') pin=pin.slice(0,-1); else if(pin.length<12) pin+=k;
+    msg.textContent=''; drawDots();
+  }
+  pad.addEventListener('click',e=>{const b=e.target.closest('[data-k]'); if(b) press(b.dataset.k)});
+  document.addEventListener('keydown',e=>{
+    if(lock.hidden) return;
+    if(/^[0-9]$/.test(e.key)) press(e.key); else if(e.key==='Backspace') press('del'); else if(e.key==='Enter') press('go');
+  });
+  // lock again after 5 minutes in the background
+  let hiddenAt=0;
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden) hiddenAt=Date.now();
+    else if(cryptoKey&&hiddenAt&&Date.now()-hiddenAt>5*60*1000) location.reload();
+  });
+})();
 </script>
 </body>
 </html>
