@@ -30,8 +30,8 @@ button,input,textarea,select{font:inherit;color:inherit}
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior-y:none}
 input,textarea{-webkit-user-select:text;user-select:text}
 button,label,summary,a{touch-action:manipulation}
-.btn:active,.chip:active,.friend:active,.wyr button:active,.seg button:active{transform:scale(.97)}
-.btn,.chip,.friend,.wyr button,.seg button{transition:transform .08s}
+.btn:active,.chip:active,.wyr button:active,.seg button:active{transform:scale(.97)}
+.btn,.chip,.wyr button,.seg button{transition:transform .08s}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
@@ -98,19 +98,9 @@ form.inline{display:flex;flex-direction:column;gap:8px;margin-top:6px}
 
 /* lists */
 .list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.friend{width:100%;text-align:start;display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;cursor:pointer}
-.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:600;font-size:1.1rem;background:hsl(var(--h) 35% 85%);color:hsl(var(--h) 45% 25%);flex:none}
-.f-main{min-width:0;display:flex;flex-direction:column}
-.f-main small{color:var(--muted);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-between{display:flex;justify-content:space-between;align-items:center;gap:12px}
 
-.plan li,.item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;border-inline-start:5px solid var(--mc,var(--line))}
-.plan li strong{display:block;font-size:.85rem;color:var(--muted);font-weight:500}
-.starter{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
-.starter input{width:22px;height:22px;margin-top:2px;accent-color:var(--primary);flex:none}
-.tag{display:inline-block;border-radius:999px;padding:4px 12px;background:var(--surface);border:1px solid var(--line);font-size:.9rem;margin:0 6px 6px 0}
-.tag small{color:var(--muted)}
-.plan-actions{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;border-inline-start:5px solid var(--mc,var(--line))}
 
 .story{display:flex;gap:10px;align-items:flex-start}
 .story p{margin:0;flex:1;white-space:pre-wrap}
@@ -269,26 +259,22 @@ const MOODS=['light','deep','memories','whatif','life'];
 
 const T={
 en:{
- app:'Majlis',tagline:'Good talk, ready when you are',topics:'Topics',friends:'Friends',meetup:'Meetup',stories:'Stories',games:'Games',
+ app:'Majlis',tagline:'Good talk, ready when you are',topics:'Topics',stories:'Stories',games:'Games',
  all:'All',light:'Light',deep:'Deep',memories:'Memories',whatif:'What if',life:'Catch-up',mine:'Mine',saved:'Saved',
  another:'Another one',save:'Save',usedIt:'Used it',used:'used',hideUsed:'Hide used topics',clearUsed:'Clear used marks',clearUsedQ:'Clear the used mark from every topic?',
  swipeHint:'Swipe the card for another one',addTopic:'Add your own topic',addTopicPh:'Write a question you like to ask',add:'Add',topicAdded:'Topic added',
  noTopics:'Nothing left here. Turn off "Hide used topics", pick another group, or add your own.',
- friendsEmpty:'Add the friends you meet most. A few notes about each one makes the next meetup easier.',
- addFriend:'Add friend',name:'Name',interests:'Interests',interestsPh:'Football, cars, farming… separate with commas',
- news:"What's new in their life",newsPh:'New job, a trip, a new baby…',followups:'Ask them next time',followupsPh:'One question per line',notes:'Other notes',
- saveFriend:'Save',deleteFriend:'Delete friend',confirmDelete:'Delete this friend and their notes?',lastMet:'Last met',never:'Not met yet',
- history:'What you talked about',cancel:'Cancel',friendSaved:'Saved',
- meetupIntro:'Who are you meeting?',pickFriends:'Pick one or more friends and a plan appears here.',noFriendsYet:'Add a friend first, then come back here to plan the meetup.',goFriends:'Go to Friends',
- askAbout:'Ask about',commonGround:'Things you share',theirInterests:'Their interests',starters:'Starters',tickHint:'Untick any you didn’t get to before saving.',
- storyToShare:'A story to share',gameIdea:'If it goes quiet',shuffle:'New starters',weMet:'Save this meetup',metSaved:'Saved to each friend’s history',
- noStarters:'You have used every topic with this group. Add your own in Topics.',
+ 
+ 
+ cancel:'Cancel',
+ 
+ 
  storiesIntro:'Things from your week you want to tell your friends.',storyPh:'Something funny, a lesson, good news…',addStory:'Add story',shared:'Shared',storiesEmpty:'No stories yet. Write one down when something happens, so you remember it at the next meetup.',delete:'Delete',
  wyr:'Would you rather',debate:'Quick debate',twoTruths:'Two truths, one lie',
  twoTruthsRules:'Everyone says three things about themselves: two true, one made up. The others guess which one is the lie. The most surprising truth wins the round.',
  debateRules:'Pick sides, even if you don’t agree with yours. One minute each.',next:'Next',or:'or',
  backup:'Backup',exportData:'Save a backup file',importData:'Load a backup file',importDone:'Backup loaded',importFail:'That file is not a Majlis backup.',
- privacy:'Your stories are saved in your Supabase project. Everything else (friends, topics, meetups) stays on this phone, so save a backup now and then, because clearing the browser’s data deletes it.',
+ privacy:'Your stories are saved in your Supabase project. Your own topics and the saved and used marks stay on this phone, so save a backup now and then, because clearing the browser’s data deletes them.',
  signInTitle:'Sign in to keep your stories in Supabase',signInNote:'Use the same admin account as your products app.',username:'Username',password:'Password',signIn:'Sign in',signOut:'Sign out',
  signInFail:'Sign-in failed. Check the username and password.',signedInAs:'Signed in as',syncFail:'Couldn’t reach Supabase. Check your connection.',retry:'Try again',loading:'Loading…',
  noSb:'The sign-in couldn’t load. Check your connection and reload the page.',notUploaded:'Only on this phone, uploads when you’re signed in and online',confirmDelStory:'Delete this story?',
@@ -296,26 +282,22 @@ en:{
  enterPin:'Enter your PIN',wrongPin:'Wrong PIN. Try again.',waitPin:'Too many tries. Wait 30 seconds.',checking:'Checking…',unlockBtn:'Unlock',delDigit:'Delete',brokenData:'Couldn’t open the saved notes on this phone.',newVersion:'A new version of the app is ready.',reloadNow:'Update'
 },
 ar:{
- app:'مجلس',tagline:'سوالف جاهزة وقت ما تحتاجها',topics:'مواضيع',friends:'الأصدقاء',meetup:'اللقاء',stories:'حكايات',games:'ألعاب',
+ app:'مجلس',tagline:'سوالف جاهزة وقت ما تحتاجها',topics:'مواضيع',stories:'حكايات',games:'ألعاب',
  all:'الكل',light:'خفيفة',deep:'عميقة',memories:'ذكريات',whatif:'ماذا لو',life:'أخبار',mine:'مواضيعي',saved:'المحفوظة',
  another:'موضوع آخر',save:'حفظ',usedIt:'استخدمته',used:'مستخدم',hideUsed:'إخفاء المواضيع المستخدمة',clearUsed:'مسح علامات الاستخدام',clearUsedQ:'مسح علامة الاستخدام من كل المواضيع؟',
  swipeHint:'اسحب البطاقة لموضوع آخر',addTopic:'أضف موضوعاً من عندك',addTopicPh:'اكتب سؤالاً تحب تسأله',add:'إضافة',topicAdded:'تمت الإضافة',
  noTopics:'لم يبق شيء هنا. ألغِ "إخفاء المواضيع المستخدمة"، أو اختر مجموعة أخرى، أو أضف موضوعاً من عندك.',
- friendsEmpty:'أضف الأصدقاء الذين تقابلهم كثيراً. ملاحظات بسيطة عن كل واحد تسهّل اللقاء القادم.',
- addFriend:'إضافة صديق',name:'الاسم',interests:'الاهتمامات',interestsPh:'كورة، سيارات، زراعة… افصل بينها بفاصلة',
- news:'آخر أخباره',newsPh:'عمل جديد، سفر، مولود…',followups:'اسأله المرة القادمة',followupsPh:'سؤال في كل سطر',notes:'ملاحظات أخرى',
- saveFriend:'حفظ',deleteFriend:'حذف الصديق',confirmDelete:'حذف هذا الصديق وملاحظاته؟',lastMet:'آخر لقاء',never:'لم تلتقيا بعد',
- history:'ما تكلمتم عنه',cancel:'إلغاء',friendSaved:'تم الحفظ',
- meetupIntro:'من ستقابل؟',pickFriends:'اختر صديقاً أو أكثر وتظهر الخطة هنا.',noFriendsYet:'أضف صديقاً أولاً، ثم ارجع هنا لتجهيز اللقاء.',goFriends:'إلى الأصدقاء',
- askAbout:'اسأل عن',commonGround:'اهتمامات مشتركة',theirInterests:'اهتماماته',starters:'بدايات حديث',tickHint:'أزل العلامة عن ما لم تتكلموا عنه قبل الحفظ.',
- storyToShare:'حكاية تشاركها',gameIdea:'إذا هدأت الجلسة',shuffle:'مواضيع أخرى',weMet:'احفظ هذا اللقاء',metSaved:'تم الحفظ في سجل كل صديق',
- noStarters:'استخدمت كل المواضيع مع هذه المجموعة. أضف مواضيع من عندك في المواضيع.',
+ 
+ 
+ cancel:'إلغاء',
+ 
+ 
  storiesIntro:'أشياء من أسبوعك تحب تحكيها لأصدقائك.',storyPh:'موقف طريف، درس، خبر حلو…',addStory:'إضافة حكاية',shared:'حكيتها',storiesEmpty:'لا توجد حكايات بعد. اكتبها حين تحدث حتى تتذكرها في اللقاء القادم.',delete:'حذف',
  wyr:'لو خيّروك',debate:'نقاش سريع',twoTruths:'حقيقتان وكذبة',
  twoTruthsRules:'كل واحد يقول ثلاث معلومات عن نفسه: اثنتان صحيحتان وواحدة مختلقة. والبقية يخمنون الكذبة. أغرب حقيقة تفوز بالجولة.',
  debateRules:'اختاروا الجهتين حتى لو لم تقتنع بجهتك. دقيقة لكل واحد.',next:'التالي',or:'أو',
  backup:'نسخة احتياطية',exportData:'حفظ ملف نسخة احتياطية',importData:'تحميل ملف نسخة احتياطية',importDone:'تم تحميل النسخة',importFail:'هذا الملف ليس نسخة من مجلس.',
- privacy:'حكاياتك محفوظة في مشروع Supabase. أما الباقي (الأصدقاء والمواضيع واللقاءات) فيبقى على هذا الجوال، فاحفظ نسخة احتياطية بين حين وآخر لأن مسح بيانات المتصفح يحذفه.',
+ privacy:'حكاياتك محفوظة في مشروع Supabase. أما مواضيعك وعلامات الحفظ والاستخدام فتبقى على هذا الجوال، فاحفظ نسخة احتياطية بين حين وآخر لأن مسح بيانات المتصفح يحذفها.',
  signInTitle:'سجّل الدخول لحفظ حكاياتك في Supabase',signInNote:'استخدم حساب المسؤول نفسه الذي في تطبيق المنتجات.',username:'اسم المستخدم',password:'كلمة المرور',signIn:'تسجيل الدخول',signOut:'تسجيل الخروج',
  signInFail:'فشل تسجيل الدخول. تأكد من اسم المستخدم وكلمة المرور.',signedInAs:'مسجّل باسم',syncFail:'تعذّر الاتصال بـ Supabase. تأكد من الاتصال.',retry:'حاول مرة أخرى',loading:'جارٍ التحميل…',
  noSb:'تعذّر تحميل تسجيل الدخول. تأكد من الاتصال وأعد تحميل الصفحة.',notUploaded:'على هذا الجوال فقط، تُرفع عند تسجيل الدخول والاتصال',confirmDelStory:'حذف هذه الحكاية؟',
@@ -325,8 +307,6 @@ ar:{
 
 const ICON={
  topics:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="3"/><path d="M8 2.8h8"/></svg>',
- friends:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.2 14.2c2.2.2 3.8 1.7 4.4 4.3"/></svg>',
- meetup:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M9 3.5c0 1.5 1.5 1.5 1.5 3M12.5 3.5c0 1.5 1.5 1.5 1.5 3"/></svg>',
  stories:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h10l4 4V20H5z"/><path d="M15 4.5V9h4M8.5 13h7M8.5 16.5h5"/></svg>',
  games:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.1" fill="currentColor"/><circle cx="15" cy="15" r="1.1" fill="currentColor"/><circle cx="15" cy="9" r="1.1" fill="currentColor"/><circle cx="9" cy="15" r="1.1" fill="currentColor"/></svg>',
  backup:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg>',
@@ -335,7 +315,7 @@ const ICON={
 };
 
 /* ---------- state ---------- */
-function blank(){return {lang:'en',used:{},saved:[],custom:[],friends:[],stories:[],cur:null,filter:'all',hideUsed:true,tab:'topics',plan:{friendIds:[]},game:{mode:'wyr',i:0,pick:null}}}
+function blank(){return {lang:'en',used:{},saved:[],custom:[],stories:[],cur:null,filter:'all',hideUsed:true,tab:'topics',game:{mode:'wyr',i:0,pick:null}}}
 let S=blank();
 /* PIN lock: the PIN is never stored. Only a PBKDF2 check value is here; the same derivation gives the key that encrypts this phone's data. */
 const KEY_ENC='majlis.enc.v1', KEY_LANG='majlis.lang';
@@ -401,7 +381,6 @@ async function syncStories(){
       const {data,error}=await sb.from('majlis_stories').insert({text:st.text,shared:!!st.shared,created_at:new Date(st.at||Date.now()).toISOString()}).select().single();
       if(error) throw error;
       const i=S.stories.indexOf(st); if(i>=0) S.stories[i]=rowToStory(data);
-      if(S.plan.storyId===st.id) S.plan.storyId=data.id;
       save();
     }
     const {data,error}=await sb.from('majlis_stories').select('id,text,shared,created_at').order('created_at',{ascending:false});
@@ -476,98 +455,6 @@ function renderTopics(){
   return h;
 }
 
-/* ---------- friends ---------- */
-function renderFriends(){
-  let h=`<div class="row-between"><h2 class="h">${esc(t('friends'))}</h2><button class="btn primary sm" type="button" data-act="addFriend">${esc(t('addFriend'))}</button></div>`;
-  if(!S.friends.length) return h+`<p class="empty">${esc(t('friendsEmpty'))}</p>`;
-  const list=[...S.friends].sort((a,b)=>a.name.localeCompare(b.name));
-  h+='<ul class="list">'+list.map(f=>`<li><button class="friend" type="button" data-friend="${f.id}">
-    <span class="avatar" style="--h:${hue(f.name)}">${esc([...f.name.trim()][0]||'?')}</span>
-    <span class="f-main"><strong dir="auto">${esc(f.name)}</strong>
-    <small>${f.lastMet?esc(t('lastMet'))+': '+esc(fmtDate(f.lastMet)):esc(t('never'))}</small>
-    ${f.interests?`<small dir="auto">${esc(f.interests)}</small>`:''}</span></button></li>`).join('')+'</ul>';
-  return h;
-}
-function field(key,kind,val,ph,req){
-  const p=ph?` placeholder="${esc(t(ph))}"`:'';
-  const ctl=kind==='input'
-    ?`<input type="text" name="${key}" value="${esc(val)}" dir="auto"${p}${req?' required':''}>`
-    :`<textarea name="${key}" rows="3" dir="auto"${p}>${esc(val)}</textarea>`;
-  return `<label class="field"><span>${esc(t(key))}</span>${ctl}</label>`;
-}
-function openFriend(id){
-  const f=id?S.friends.find(x=>x.id===id):{name:'',interests:'',news:'',followups:'',notes:'',log:[]};
-  if(!f) return;
-  const log=(f.log||[]).map(e=>{
-    const items=e.t.map(tid=>{const tp=topicById(tid);return tp?`<li dir="auto">${esc(txt(tp))}</li>`:''}).join('');
-    return `<li><strong>${esc(fmtDate(e.d))}</strong>${items?`<ul>${items}</ul>`:''}</li>`}).join('');
-  openSheet(`<form id="friendForm" data-id="${id||''}">
-    <h2 class="h" dir="auto">${esc(id?f.name:t('addFriend'))}</h2>
-    ${field('name','input',f.name,'',true)}
-    ${field('interests','input',f.interests,'interestsPh')}
-    ${field('news','textarea',f.news,'newsPh')}
-    ${field('followups','textarea',f.followups,'followupsPh')}
-    ${field('notes','textarea',f.notes,'')}
-    <div class="sheet-actions"><button type="button" class="btn" data-act="closeSheet">${esc(t('cancel'))}</button><button class="btn primary grow" type="submit">${esc(t('saveFriend'))}</button></div>
-    ${id?`<button type="button" class="link danger" data-act="delFriend" data-id="${id}">${esc(t('deleteFriend'))}</button>`:''}
-    ${log?`<h3>${esc(t('history'))}</h3><ul class="log">${log}</ul>`:''}
-  </form>`);
-}
-
-/* ---------- meetup ---------- */
-function buildPlan(){
-  const p=S.plan, sel=S.friends.filter(f=>p.friendIds.includes(f.id));
-  const usedWith=new Set(); sel.forEach(f=>Object.keys(f.used||{}).forEach(id=>usedWith.add(id)));
-  const pool=allTopics().filter(x=>!usedWith.has(x.id));
-  p.topicIds=[]; ['life','light','memories','whatif','deep','mine'].forEach(m=>{const c=pool.filter(x=>x.m===m); if(c.length) p.topicIds.push(rand(c).id)});
-  const st=S.stories.filter(s=>!s.shared); p.storyId=st.length?rand(st).id:null;
-  p.game=Math.random()<.6?{mode:'wyr',i:Math.floor(Math.random()*WYR.length)}:{mode:'debate',i:Math.floor(Math.random()*DEBATE.length)};
-}
-function renderMeetup(){
-  let h=`<h2 class="h">${esc(t('meetupIntro'))}</h2>`;
-  if(!S.friends.length) return h+`<p class="empty">${esc(t('noFriendsYet'))}</p><button class="btn primary" type="button" data-goto="friends">${esc(t('goFriends'))}</button>`;
-  const p=S.plan; p.friendIds=p.friendIds.filter(id=>S.friends.some(f=>f.id===id));
-  h+='<div class="chips wrap" role="group">'+[...S.friends].sort((a,b)=>a.name.localeCompare(b.name)).map(f=>
-    `<button class="chip" type="button" data-pick="${f.id}" aria-pressed="${p.friendIds.includes(f.id)}" dir="auto">${esc(f.name)}</button>`).join('')+'</div>';
-  const sel=S.friends.filter(f=>p.friendIds.includes(f.id));
-  if(!sel.length) return h+`<p class="empty">${esc(t('pickFriends'))}</p>`;
-  if(!p.topicIds) buildPlan();
-
-  const asks=[];
-  sel.forEach(f=>{ if(f.news&&f.news.trim()) asks.push([f.name,f.news.trim()]); lines(f.followups).forEach(q=>asks.push([f.name,q])) });
-  if(asks.length) h+=`<h3>${esc(t('askAbout'))}</h3><ul class="list plan">`+asks.map(a=>`<li><strong dir="auto">${esc(a[0])}</strong><span dir="auto">${esc(a[1])}</span></li>`).join('')+'</ul>';
-
-  const map=new Map();
-  sel.forEach(f=>(f.interests||'').split(/[,،]/).map(s=>s.trim()).filter(Boolean).forEach(i=>{
-    const k=i.toLowerCase(); if(!map.has(k)) map.set(k,{label:i,names:new Set()}); map.get(k).names.add(f.name)}));
-  let interests=[...map.values()];
-  if(sel.length>1) interests=interests.filter(x=>x.names.size>1);
-  if(interests.length){
-    h+=`<h3>${esc(t(sel.length>1?'commonGround':'theirInterests'))}</h3><div>`+interests.map(x=>
-      `<span class="tag" dir="auto">${esc(x.label)}${sel.length>2?` <small>${esc([...x.names].join(', '))}</small>`:''}</span>`).join('')+'</div>';
-  }
-
-  const tops=(p.topicIds||[]).map(topicById).filter(Boolean);
-  h+=`<h3>${esc(t('starters'))}</h3>`;
-  if(tops.length){
-    h+=`<p class="muted" style="margin:0 0 8px;font-size:.9rem">${esc(t('tickHint'))}</p><ul class="list plan" id="starters">`+tops.map(tp=>
-      `<li style="--mc:var(--${tp.m})"><label class="starter"><input type="checkbox" value="${tp.id}" checked><span dir="auto">${esc(txt(tp))}</span></label></li>`).join('')+'</ul>';
-  } else h+=`<p class="empty">${esc(t('noStarters'))}</p>`;
-
-  const story=p.storyId&&S.stories.find(s=>s.id===p.storyId);
-  if(story) h+=`<h3>${esc(t('storyToShare'))}</h3><div class="item" dir="auto">${esc(story.text)}</div>`;
-
-  if(p.game){
-    const g=p.game.mode==='wyr'?WYR[p.game.i]:DEBATE[p.game.i];
-    if(g){
-      const body=p.game.mode==='wyr'?`${esc(t('wyr'))}: ${esc(g[S.lang][0])} ${esc(t('or'))} ${esc(S.lang==='en'?g.en[1][0].toLowerCase()+g.en[1].slice(1):g.ar[1])}${S.lang==='ar'?'؟':'?'}`:esc(g[S.lang]);
-      h+=`<h3>${esc(t('gameIdea'))}</h3><div class="item">${body}</div>`;
-    }
-  }
-  h+=`<div class="plan-actions"><button class="btn" type="button" data-act="shuffle">${esc(t('shuffle'))}</button><button class="btn primary grow" type="button" data-act="saveMeetup">${esc(t('weMet'))}</button></div>`;
-  return h;
-}
-
 /* ---------- stories ---------- */
 function renderStories(){
   let h=`<h2 class="h">${esc(t('stories'))}</h2><p class="muted" style="margin-top:-4px">${esc(t('storiesIntro'))}</p>`;
@@ -614,8 +501,9 @@ function renderGames(){
 }
 
 /* ---------- shell ---------- */
-const TABS=['topics','friends','meetup','stories','games'];
+const TABS=['topics','stories','games'];
 function render(){
+  if(!TABS.includes(S.tab)) S.tab='topics';
   document.documentElement.lang=S.lang; document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';
   document.title=t('app');
   document.getElementById('appName').textContent=t('app');
@@ -623,7 +511,7 @@ function render(){
   document.getElementById('langBtn').textContent=t('langBtn');
   const bb=document.getElementById('backupBtn'); bb.innerHTML=ICON.backup; bb.setAttribute('aria-label',t('backup'));
   document.getElementById('tabs').innerHTML=TABS.map(k=>`<button type="button" data-tab="${k}" ${S.tab===k?'aria-current="page"':''}>${ICON[k]}<span>${esc(t(k))}</span></button>`).join('');
-  const r={topics:renderTopics,friends:renderFriends,meetup:renderMeetup,stories:renderStories,games:renderGames}[S.tab]||renderTopics;
+  const r={topics:renderTopics,stories:renderStories,games:renderGames}[S.tab];
   const draft=document.getElementById('storyText'); const keep=draft?draft.value:'';
   document.getElementById('main').innerHTML=r();
   const nd=document.getElementById('storyText'); if(nd&&keep) nd.value=keep;
@@ -659,16 +547,11 @@ document.getElementById('langBtn').addEventListener('click',()=>{S.lang=S.lang==
 document.getElementById('backupBtn').addEventListener('click',openBackup);
 
 document.addEventListener('click',e=>{
-  const el=e.target.closest('[data-act],[data-filter],[data-friend],[data-pick],[data-goto],[data-delstory],[data-mode],[data-wyr]');
+  const el=e.target.closest('[data-act],[data-filter],[data-delstory],[data-mode],[data-wyr]');
   if(!el) return;
   const d=el.dataset;
   if(d.act==='closeSheet'){ if(el.classList.contains('sheet-wrap')&&e.target!==el) return; closeSheet(); return }
   if(d.filter){S.filter=d.filter; S.cur=null; render(); return}
-  if(d.friend){openFriend(d.friend); return}
-  if(d.goto){S.tab=d.goto; render(); return}
-  if(d.pick){
-    const ids=S.plan.friendIds; const i=ids.indexOf(d.pick); i<0?ids.push(d.pick):ids.splice(i,1);
-    buildPlan(); render(); return}
   if(d.delstory){const st=S.stories.find(s=>s.id===d.delstory); if(!st||!confirm(t('confirmDelStory'))) return;
     remoteStory('delete',st).then(ok=>{if(ok){S.stories=S.stories.filter(s=>s!==st); render()}}); return}
   if(d.mode){S.game={mode:d.mode,i:Math.floor(Math.random()*(d.mode==='wyr'?WYR.length:DEBATE.length)),pick:null}; render(); return}
@@ -679,16 +562,6 @@ document.addEventListener('click',e=>{
     case 'used': {if(S.used[S.cur]) delete S.used[S.cur]; else S.used[S.cur]=today(); render(); break}
     case 'clearUsed': if(confirm(t('clearUsedQ'))){S.used={}; render()} break;
     case 'delTopic': {const id=S.cur; S.custom=S.custom.filter(c=>c.id!==id); S.saved=S.saved.filter(x=>x!==id); delete S.used[id]; S.cur=null; render(); break}
-    case 'addFriend': openFriend(null); break;
-    case 'delFriend': if(confirm(t('confirmDelete'))){S.friends=S.friends.filter(f=>f.id!==d.id); closeSheet(); render()} break;
-    case 'shuffle': buildPlan(); render(); break;
-    case 'saveMeetup': {
-      const p=S.plan, sel=S.friends.filter(f=>p.friendIds.includes(f.id)), dt=today();
-      const done=[...document.querySelectorAll('#starters input:checked')].map(i=>i.value);
-      sel.forEach(f=>{f.used=f.used||{}; done.forEach(id=>f.used[id]=dt); f.log=f.log||[]; f.log.unshift({d:dt,t:done}); f.lastMet=dt});
-      done.forEach(id=>{if(!S.used[id]) S.used[id]=dt});
-      const st=p.storyId&&S.stories.find(s=>s.id===p.storyId); if(st){st.shared=true; remoteStory('update',st,{shared:true})}
-      S.plan={friendIds:[]}; render(); toast(t('metSaved')); window.scrollTo(0,0); break}
     case 'resync': syncStories(); break;
     case 'signOut': if(sb) sb.auth.signOut(); break;
     case 'nextGame': {const n=S.game.mode==='wyr'?WYR.length:DEBATE.length; S.game.i=(S.game.i+1)%n; S.game.pick=null; render(); break}
@@ -706,7 +579,7 @@ document.addEventListener('change',e=>{
   if(e.target.id==='importFile'){
     const file=e.target.files[0]; if(!file) return;
     const r=new FileReader();
-    r.onload=()=>{try{const j=JSON.parse(r.result); if(j.app!=='majlis'||!j.data||!Array.isArray(j.data.friends)) throw 0;
+    r.onload=()=>{try{const j=JSON.parse(r.result); if(j.app!=='majlis'||!j.data||typeof j.data!=='object') throw 0;
       S=Object.assign(blank(),j.data); closeSheet(); render(); toast(t('importDone')); syncStories()}catch(err){toast(t('importFail'))}};
     r.readAsText(file);
   }
@@ -728,13 +601,6 @@ document.addEventListener('submit',e=>{
     sb.auth.signInWithPassword({email,password:fd.get('password')}).then(({error})=>{
       btn.disabled=false; if(error) toast(t('signInFail'));
     });
-  } else if(f.id==='friendForm'){
-    const fd=new FormData(f); const name=(fd.get('name')||'').trim(); if(!name) return;
-    const data={name,interests:fd.get('interests').trim(),news:fd.get('news').trim(),followups:fd.get('followups').trim(),notes:fd.get('notes').trim()};
-    const id=f.dataset.id;
-    if(id){Object.assign(S.friends.find(x=>x.id===id),data)} else S.friends.push({id:uid(),...data,log:[],used:{},lastMet:null});
-    if(S.plan.friendIds.length) buildPlan();
-    closeSheet(); render(); toast(t('friendSaved'));
   }
 });
 
