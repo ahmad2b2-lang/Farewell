@@ -7,7 +7,7 @@ A family dungeon game for four players, in a single `index.html` file. It works 
 1. Write the four players' names, then **Enter the Dungeon**.
 2. The door is held by four locks. Go through the arrow to the **Trials**: each player opens their warp door, picks a subject and answers the questions (10 seconds each), then the Sacrifice Question.
 3. Passing a trial reveals that player's lock code. Dial all four codes to open the door.
-4. Appreciation Day, the treasure box, the credits… and, if Ahmad was left behind, a zombie battle and a 1-vs-1 VS battle.
+4. Appreciation Day, the credits… and, if Ahmad was left behind, a zombie battle and a 1-vs-1 VS battle.
 
 Players 1 and 2 play in English; Players 3 and 4 play in Arabic.
 
